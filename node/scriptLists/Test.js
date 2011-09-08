@@ -3,8 +3,6 @@ var _path = require('path');
 var _mkdirp = require('mkdirp');
 
 var _fileTools = require('../utils/FileTools');
-var _bp =  require('../utils/buildProject');
-
 
 module.exports = {
 
