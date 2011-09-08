@@ -1,11 +1,7 @@
 var _jsonAccumulator = {};
 
 module.exports = {
-  
   process : function (q) {
-    q.response.writeHead(200, {
-          'Content-Type': 'text/javascript'
-        });
     if (q.params.data && q.params.id) {
       var item, id = parseInt(q.params.id);
       if(_jsonAccumulator[id] === undefined) {
@@ -21,19 +17,22 @@ module.exports = {
       if (item.count == item.expected) {
         var data = item.data.join('');
         data = JSON.parse(data);
-        if (data.evalCode != null) {
-          eval(data.evalCode);
-          ssTest(data);
-          }
-        q.response.end("JsonPClient.serverCallback(" + JSON.stringify(data) + ")");
-        delete(_jsonAccumulator[id]);
-        return;
+        
+        q.write = function (o) {
+          q.response.writeHead(200, {'Content-Type': 'text/javascript'});
+          q.response.end("JsonPClient.serverCallback(" + id + "," + JSON.stringify(o) + ");");
+          delete(_jsonAccumulator[id]);
+          };
+        return data;
       }
       else {
+        q.response.writeHead(200, {'Content-Type': 'text/javascript'});
         q.response.end("");
-        return;
+        return null;
       }
     }
-  q.response.end("'....'");
+  q.response.writeHead(200, {'Content-Type': 'text/javascript'});
+  q.response.end("JsonPClient.serverCallback(" + id + ", null);");
+  return null
   }
 };

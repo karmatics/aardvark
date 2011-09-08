@@ -91,6 +91,25 @@ module.exports = {
 
   },
 
+  jsonPScripts: {
+    td4 : function (q, data) {
+      if (data.functionToRun) {
+        try {
+          var func;
+          var vm = require('vm');
+          console.log(data.functionToRun);
+          var sandbox = {require: require, script: null};
+          vm.runInNewContext("script = " + data.functionToRun + ";", sandbox, "seeifitworks.js");
+          sandbox.script(q, data);
+          delete (global.td4Script);
+        }
+        catch (e) {
+          q.write({error: e});
+          }
+        }
+      }
+    },
+  
   jsonGetScripts: {
   
     crash : function (q) {
@@ -168,126 +187,6 @@ module.exports = {
       _mkdirp(q.params.d, "0777", function (e) {
           q.write("coolio!")
         });    
-    },
-
-    // call a function that delivers its result via a simple return value 
-    testDoSomething : function (q) {
-      q.write(_bp.doSomething(q.params.input));
-    },
-
-    // call a function that delivers its result via a callback 
-    testDoSomething2 : function (q) {
-      _bp.doSomething2(q.params.input, function(str){
-          q.write(str);
-        });
-    },
-
-    showDir: function (q) {
-      var t1 = new Date().getTime();
-      if (q.params.dirname != null) {
-        var mask = null;
-        if (q.params.mask) {
-          mask = {};
-          mask[q.params.mask] = true;
-        }
-        var dirCb = null;
-        if (q.params.block) {
-          var a = q.params.block.split(",");
-          var block = {};
-          for (var i=0; i<a.length; i++)
-            block[a[i]] = true;
-          dirCb = function (d) {
-            return (block[d.name] === undefined);
-          }
-        }
-        
-        function makeDateTimeString (d) {
-          var month = d.getMonth();
-          var day	= d.getDate();
-          var year = d.getYear();
-          
-          var hour = d.getHours();
-          var minute = d.getMinutes();
-          var ap = "am";
-          
-          if(hour > 11) {
-            ap = "pm";
-            if(hour	 > 12) 
-              hour = hour - 12;
-            }
-          else if(hour == 0)
-            hour = 12;			
-          
-          var dateStr = hour + ((minute < 10)?":0":":") + minute + ap;
-          
-          //if(month != this.thisMonth || day != this.today || year != this.thisYear)
-            {
-            dateStr += " " + (month+1) + "/" + day;
-          
-            if(year != this.thisYear) {
-              year = (year%100);
-              dateStr += ((year < 10)?"/0":"/") + year
-              }
-            }
-          return dateStr;
-          }
-
-        var handlerCb = function (tree) {
-          var t2 = new Date().getTime()
-          // sort files and subdirs alphabetically
-          _fileTools.sortFileTree(tree);
-
-          var a = [];
-
-          // function to convert dir and (optional) file into
-          // string, and add it to array
-          var addItemString = function (dir, file, isIter) {
-            var path = _fileTools.getPath(dir, file,  ((isIter)?"blah":null));
-            var s = path.join('/');
-            if (file)
-              s += " size: " + file.status.size + ", last modified: " + 
-              
-              makeDateTimeString(new Date(file.status.mtime));
-            else
-              s += " (" + dir.files.length + " files, " + dir.subDirs.length + " subdirs)";
-            a.push(s);
-          }
-
-          // using iterator is good when we need it sequential,
-          // but each file may spawn an an asynch action
-          if (q.params.doIterator) {
-            var getNext = _fileTools.getTreeIterator(tree);
-            var item;
-            var addNext = function () {
-              var item = getNext();
-              if (item) {
-                addItemString(item[0], item[1], true);
-                setTimeout(addNext, 100);
-              }
-              else {
-                a.push(new Date().getTime() - t2, t2-t1);
-                q.write(a);
-              }
-            };
-            addNext();
-          }
-          // non-iterator is best when we know we want to do something
-          // immediate per file
-          else {
-            _fileTools.walkFileTree(tree, function (dir, file) {
-                addItemString(dir, file);
-              });
-            a.push(t2-t1, new Date().getTime() - t2);
-            q.write(a);
-          }
-        };
-
-
-        var maxDepth = ((q.params.maxdepth)?parseInt(q.params.maxdepth):null);
-        // get the file tree as a nested data structure
-        _fileTools.getFileTree(q.params.dirname, handlerCb, dirCb, maxDepth);
-      }
-      else q.write("no dir");
     },
 
     runChildProcess: function (q) {

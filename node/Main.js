@@ -15,6 +15,7 @@ var serverSettings = null;
 
 var scripts = {
   jsonGetScripts : {},
+  jsonPScripts : {},
   htmlScripts: {}
   };
 
@@ -52,6 +53,9 @@ for (var i=0; i<sl.length; i++)  {
   for (var j in list.htmlScripts) {
     scripts.htmlScripts[j] = list.htmlScripts[j];
   }
+  for (var j in list.jsonPScripts) {
+    scripts.jsonPScripts[j] = list.jsonPScripts[j];
+  }
   for (var j in list.jsonGetScripts) {
     scripts.jsonGetScripts[j] = list.jsonGetScripts[j];
   }
@@ -60,7 +64,7 @@ for (var i=0; i<sl.length; i++)  {
 // create server for static files
 var fileServer = (serverSettings.fileServer) ? new(_nodeStatic.Server)((serverSettings.fileServer).path) : null;
 
-/*process.on('uncaughtException',function(error){
+process.on('uncaughtException',function(error){
     if (currQ) {
       if (error.stack) {
         error.stack = error.stack.split("\n");
@@ -71,7 +75,7 @@ var fileServer = (serverSettings.fileServer) ? new(_nodeStatic.Server)((serverSe
     });
 
 var appStartTime = new Date().getTime();
-
+/*
 var restartIfSourceFileChanged = function () {
   var validateDir = function (d) {
       return (d.name !== "node_modules");
@@ -116,7 +120,15 @@ var dispatchRequest = function (q) {
     console.log("html script: " + q.path);
   }
   else if (q.path === 'jsonP') {
-    _jsonP.process(q);
+    var inputData = _jsonP.process(q);
+    if (inputData !== null) {
+      if (inputData.scriptName != null && (script = scripts.jsonPScripts[inputData.scriptName]) != null) {
+        script(q, inputData);
+        }
+      else {
+        q.write({error: 'script not found'});
+        }
+      }
     }
   else if ((script = scripts.jsonGetScripts[q.path]) != null) {
     q.write = function (o) {

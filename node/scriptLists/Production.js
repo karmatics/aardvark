@@ -10,6 +10,9 @@ module.exports = {
     }
   },
 
+  jsonPScripts: {
+  },
+
   jsonGetScripts: {
 
     getTaskList : function (q) {

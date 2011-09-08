@@ -3,8 +3,7 @@ maxUrl : 1500,
 
 currRequests : {},
 
-serverCallback: function (data) {
-  // Logger.write(id);
+serverCallback: function (id, data) {
   showObj(data);
   },
 
