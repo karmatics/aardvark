@@ -13,11 +13,12 @@ var aardvark = {
 isBookmarklet: true,
 resourcePrefix: "http://localhost/aardvark/",
 srcFiles: [
-  'aardvarkStrings.js',
-  'aardvarkUtils.js',
+  'CoffeeScript/build/aardvarkStrings.js',
+  'CoffeeScript/build/aardvarkUtils.js',
   'aardvarkDBox.js',
-  'aardvarkCommands.js',
-  'aardvarkMain.js'
+  'CoffeeScript/build/aardvarkCommands.js',
+  //'aardvarkCommands1.js',
+  'CoffeeScript/build/aardvarkMain.js'
   ],
 
 //------------------------------------------------
