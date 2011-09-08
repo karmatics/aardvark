@@ -1,0 +1,214 @@
+<html> 
+<style> 
+body {
+overflow: hidden;
+overflow: hidden;
+padding: 0;
+margin: 0;
+}
+.fullsize {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  }
+.ta {
+  margin: 0px;
+  padding: 8px;
+  font-weight: bold;
+  font-family: courier new;
+  font-size: 14px;
+  resize: none; 
+  border:0px solid green;
+  } 
+.ta:hover {outline: 0px solid blue;}
+.ta:focus {outline: 0px solid black;}
+.ta:active {outline: 0px solid red;}
+.savebutton {
+  position: absolute;
+  bottom: 5px;
+  right: 10px;
+  }
+div.loginDialogBox {
+  width: 275px;
+  height: 80px;
+  background-color: rgba(0,0,0,.7);
+  border-radius: 7px;
+  -moz-border-radius: 7px;
+  position: absolute;
+  -moz-box-shadow: 5px 5px 5px #888;
+  -webkit-box-shadow: 5px 5px 5px #888;
+  box-shadow: 5px 5px 5px #888;
+}
+div.alertDialogBox {
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  font-family: arial;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0px 0px 4px #000;
+  text-align: right;
+  background-color: rgba(0,50,0,.7);
+  border-radius: 7px;
+  -moz-border-radius: 7px;
+  position: absolute;
+  -moz-box-shadow: 5px 5px 5px #888;
+  -webkit-box-shadow: 5px 5px 5px #888;
+  box-shadow: 5px 5px 5px #888;
+}
+div.alertDialogBox .inner {
+  margin: 10px 20px;
+}
+
+div.loginDialogBox input.button {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+}
+div.loginDialogBox table {
+  margin: 4px auto 4px auto;
+}
+div.loginDialogBox td.loginLabel {
+  font-size: 14px;
+  font-family: courier new;
+  font-weight: bold;
+  color: #0f0;
+  text-align: right;
+}
+div.loginDialogBox input.loginText {
+  width: 150px;
+  margin: 0 0 0 4px;
+  padding: 2px 4px;
+  font-size: 13px;
+  font-family: courier new;
+  font-weight: bold;
+  border: 0;
+  background-color: rgba(0,0,0,.3);
+  color: #ff8;
+}
+
+</style> 
+<body> 
+<div class='fullsize'>
+<textarea name="contents" id="ta" class='fullsize ta'></textarea><input  type="button" value="submit changes" class="savebutton" onclick="submitChanges()"/>
+</div>
+
+<!-- div class="loginDialogBox">
+<table>
+<tr><td class='loginLabel'>username:</td><td><input type="text" class="logintext" /></td></tr>
+<tr><td class='loginLabel'>password:</td><td><input type="text" class="logintext" /></td></tr>
+</table>
+<input type='button' class='button' value='login'/>
+</div -->
+</body> 
+<script src="../js/library/DomUtils.js"></script>
+<script src="../js/library/DomGenerator.js"></script>
+<script src="../js/library/Cookie.js"></script>
+<script src="../js/library/ServerComm.js"></script>
+<script>
+
+var fetchDataCallback = function (s) {
+  if (s.err) {
+    showDialogBox();
+  }
+  else
+    document.getElementById('ta').value = s.contents;
+}
+
+var showDialogBox = function () {
+  var usernameText, passText, form;
+  with (DomGenerator) {
+    var dbox = DIV ({className:"loginDialogBox"},
+      form = FORM (TABLE (
+          TBODY (
+            TR (
+              TD ({className:"loginLabel"},
+                "username:"
+              ),
+              TD (
+                usernameText = INPUT ({type:"text", className:"logintext"})
+              )
+            ),
+            TR (
+              TD ({className:"loginLabel"},
+                "password:"
+              ),
+              TD (
+                passText = INPUT ({type:"password", className:"logintext"})
+              )
+            )
+          )
+        ),
+        INPUT ({type:"submit", className:"button", value:"login"})
+      ));
+    addToDocumentCentered(dbox);
+    form.onsubmit = function () {
+      Cookie.setCookie ('taskuser', usernameText.value, '/', 90);
+      Cookie.setCookie ('taskpass', passText.value, '/', 90);
+      fetchData();
+      document.body.removeChild(dbox);
+      return false;
+    };
+    usernameText.focus();
+  }
+};  
+
+var getFilename = function () {
+  var file = document.location.hash;
+  if (file && file.length>2) {
+    if(file[0] == '#')
+      file = file.substring(1);
+  }
+  else {
+    file = 'taskList.txt';
+  }
+  return file;
+};
+  
+var fetchData = function () { 
+  var script = document.createElement("script");
+  var file = getFilename();
+  script.src = '/getTaskList?file=' + file + '&callback=fetchDataCallback&nocache=' + Math.random();
+  showResponse ("loading file <i>" +file +  "</i>");
+  document.body.appendChild(script);
+};
+
+var addToDocumentCentered = function (elem) {
+  var o = DomUtils.getWindowDimensions();
+  elem.style.left = '-4000px';
+  elem.style.top = '0px';
+  document.body.appendChild (elem);
+  elem.style.left = ((o.width - elem.offsetWidth)/2)  + 'px';
+  elem.style.top = ((o.height - elem.offsetHeight)/2) + 'px';
+};
+
+showResponse = function (s) {
+  with (DomGenerator) {
+    var box = DIV ({className:"alertDialogBox"},
+      DIV({className:"inner"},
+        {html: s}
+      ));
+    }
+  addToDocumentCentered(box);
+  setTimeout(function () {
+    box.parentNode.removeChild(box);
+    }, 1000);
+};
+
+var submitChanges = function () {
+  var data = document.getElementById('ta').value;
+  ServerComm.xhrPost ("/saveTaskList", {contents: data, file: getFilename()}, function(s){
+      if (s.indexOf('thank') != -1) {
+        showResponse ("user <i>" + Cookie.getCookie ('taskuser') +  "</i> saved " + data.length + " characters");
+        } 
+      else {
+        showResponse ("failed to save");
+        }
+    });
+};
+
+fetchData();
+
+</script>
+</html>

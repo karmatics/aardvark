@@ -1,0 +1,95 @@
+<html> 
+<style> 
+#mainContainer {
+  margin: 10px;
+  padding: 10px;
+  width: auto;
+  border: 2px solid #ccc;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  }
+table.inputItems {
+  border-collapse: collapse;
+  border-spacing: 0;
+  }
+ 
+table.inputItems td {
+  font-size: 14px;
+  border-bottom: 2px solid #fff;
+  }
+ 
+table.inputItems tr {
+  background-color: #eee;;
+  }
+ 
+table.inputItems td.label {
+  padding: 1px 5px;
+  text-align: right;
+  font-family: arial;
+  clear: both;
+  } 
+table.inputItems td.label2 {
+  padding: 1px 5px;
+  text-align: center;
+  font-family: arial;
+  }
+input.textleft {
+  width: 150px;
+  font-size: 12px;
+  }
+input.textright {
+  width: 250px;
+  font-size: 12px;
+  }
+input.sel {
+  font-size: 12px;
+  }
+input.button {
+  margin-left: 250px;
+  }
+textarea.hiddenta {
+display: none;
+}
+div.lineno {
+  float: left;
+  font-size: 11px;
+  font-family: arial;
+  color: #444;
+  }
+div#time {
+  float: left;
+  margin-left: 65px;
+  font-size: 11px;
+  font-family: arial;
+  color: #444;
+  }
+br {
+ clear: both;
+}
+ 
+img#progresswheel {
+position: absolute;
+border: 0;
+top: 300px;
+left: 400px;
+display: none;
+}
+</style> 
+
+<body> 
+<div id="mainContainer"> 
+<form action="/createFile" method="post" target="new">
+<table class='inputItems' id="inputitems"> 
+<tr>
+<tr><td class='label'>filename:</td><td><input class='textright' type='text'  name="filename" /></td></tr>
+<tr><td class='label' >timestamp:</td><td><input class='textright' type='text'  name="timestamp"/></td></tr><tr><td class='label2' colspan='2'>contents:</td></tr>
+<tr><td  colspan=2><textarea  name="contents" style='width: 500px; height: 400px'></textarea></td></tr>
+</table><input type="submit" value="test" class="button" />
+</form>
+<div class="lineno">hide line numbers: <input type="checkbox" id="linenocheckbox" onchange="PrettyCode.checkboxChanged()"/></div>
+<br>
+<div id="codediv"> 
+</div>
+ </div> 
+</body> 
+</html> 

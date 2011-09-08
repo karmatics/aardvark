@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<style>
+pre span.gr {
+font-weight: bold;
+background-color: #afa;
+}
+pre span.bl {
+font-weight: bold;
+background-color: #acf;
+}
+</style>
+</head>
+ <body>
+ <p>To add aardvark as a bookmarklet, make a bookmark by dragging the following link to your bookmarks bar [ <a href="javascript:(function(d,s,j,c){d='localhost';c=document;j=window.x;if(j){new j();}else{s=c.createElement('script');s.isAardvark=true;s.src='http://'+d+'/aardvark/bookmarklet.js';c.body.appendChild(s);}})();">Aardvark</a> ] (or right clicking, and picking "bookmark this link"), or by editing an existing bookmark and pasting the following into it:</p>
+    
+<textarea style="width: 800px; height: 100px;font-size: 15px; font-weight: bold;font-family: courier new">javascript:(function(d,s,j,c){d='localhost';c=document;j=window.x;if(j){new j();}else{s=c.createElement('script');s.isAardvark=true;s.src='http://'+d+'/aardvark/bookmarklet.js';c.body.appendChild(s);}})();
+</textarea>
+<p>
+This assumes you have it at at "http://localhost/aardvark/bookmarklet.js"
+</p>
+<hr>
+ <p>To add the snippet editor as a bookmarklet, make a bookmark by dragging the following link to your bookmarks bar [ <a href="javascript:(function(s,j,c){c=document;j=window.JsSnippetEditor;if(j){new j();}else{s=c.createElement('script');s.src='http://localhost/js/library/Snippet.php?user=robsnippets&pw=slushpuppy&group=default';c.body.appendChild(s);}})();">Snippet</a> ] (or right clicking, and picking "bookmark this link"), or by editing an existing bookmark and pasting the following into it:</p>
+    
+<textarea style="width: 800px; height: 100px;font-size: 15px; font-weight: bold;font-family: courier new">javascript:(function(s,j,c){c=document;j=window.JsSnippetEditor;if(j){new j();}else{s=c.createElement('script');s.src='http://localhost/js/library/Snippet.php?user=robsnippets&pw=slushpuppy&group=default';c.body.appendChild(s);}})();
+</textarea>
+
+<p>
+This assumes you have various things, but importantly php must be able to write to files in the directory js/library/remotestoredata/robsnippets.
+</p><p>
+Also, be aware that defaults.js, in that directory, is where the snippets are stored.  you can change the bookmarklet to have it save to a different file.  If you save multiple times too fast, it will corrupt the file, and you will have to pull one down from git.
+</p>
+
+
+</body>
+</html>

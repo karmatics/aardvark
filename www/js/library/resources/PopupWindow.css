@@ -1,0 +1,197 @@
+table.rjbwindow {
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  z-index: 500;
+  width: auto;
+  }
+
+table.rjbwindow * {
+  color: #000;
+  background-color: transparent;
+  border: 0;
+  font-family: arial;
+  font-weight: normal;
+  font-size: 13px;
+  font-style: normal;
+  text-align: left;
+  text-decoration: none;
+  text-indent: 0;
+  vertical-align: top;
+  padding: 0;
+  margin: 0;
+  }
+
+table.rjbwindow select  {
+  border: 1px solid black;
+  margin: 1px;
+  padding: 0px;
+  color:#050; 
+  font: bold 84% 'trebuchet ms',helvetica,sans-serif; 
+  background-color: #fff;
+  }
+
+table.rjbwindow input.text  {
+  border: 1px solid black;
+  margin: 1px;
+  padding: 3px;
+  color:#333; 
+  font: bold 11px helvetica,sans-serif; 
+  background-color: #fff;
+  }
+
+table.rjbwindow input.button  {
+  border: 1px solid #fff;
+  margin: 1px;
+  padding: 2px 3px;
+  color:#050; 
+  font: bold 11px helvetica,sans-serif; 
+  background-color: #ccc;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  -webkit-box-shadow: 1px 1px 2px rgba(0,0,0,.5);
+  -moz-box-shadow: 1px 1px 2px rgba(0,0,0,.5);
+  }
+
+table.rjbwindow input.button:hover  {
+  background-color:#ffc;
+  color:#000;
+  }
+
+table.rjbwindow input.button:active  {
+  color:#fff; 
+  margin: 2px 0px 0px 2px;
+  
+  background-color: #555;
+  -webkit-box-shadow: 0 0 2px rgba(0,0,0,.5);
+  -moz-box-shadow: 0 0 2px rgba(0,0,0,.5);
+  }
+
+table.rjbwindow textarea  {
+  background-color: #eee;
+  border: 1px solid black;
+  margin: 0;
+  padding: 1px 2px;
+  color:#000; 
+  font-family: courier new, helvetica,sans-serif; 
+  font-weight: bold;
+  }
+
+table.rjbwindow tr {
+  margin: 0;
+  padding: 0;
+  }
+
+table.rjbwindow td {
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+  }
+
+table.rjbwindow td.dragbar {
+  height: 6px;
+  cursor: move;
+  font-size: 4px;
+  background-color: #04a;
+  border-width: 1px 0 1px 1px;
+  border-color: #66c;
+  border-bottom-color: #000;
+  border-style: solid; 
+  }
+
+table.rjbwindow div.rjbtitle {
+  margin: -4px 0 -4px -3px;
+  float: left;
+  padding: 2px 13px 2px 8px;
+  background-color: #04a;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-width: 1px 0 1px 1px;
+  border-color: #66c;
+  border-bottom-color: #000;
+  border-style: solid;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  }
+
+table.rjbwindow td.hilite, table.rjbwindow td.hilite div.rjbtitle  {
+  background-color: #07c;
+  border-color: #88d;
+  border-bottom-color: #000;
+  }
+
+table.rjbwindow td.killbox {
+  height: 10px;
+  width: 3px;
+  }
+
+table.rjbwindow div.killbox {
+  width: 19px;
+  height: 20px;
+  margin: 0 0 -10px -11px;
+  position: relative;
+  top: -5px;
+  left: 0px;
+  cursor: pointer;
+  background: url(closesmroundblue.png);
+  }
+
+table.rjbwindow div.killbox:hover {
+  background: url(closesmround.png);
+  }
+
+table.rjbwindow div.cornerdragger {
+  width: 17px;
+  height: 17px;
+  margin: 0 0 -10px -10px;
+  position: relative;
+  top: -12px;
+  left: -3px;
+  cursor: nw-resize;
+  background: url(cornergrabber.png);
+  }
+
+table.rjbwindow div.content {
+  margin: 0 0 0 3px;;
+  padding: 7px 4px 4px 4px;
+  text-align: left;
+  border-width: 0 2px 2px 2px;
+  -moz-border-radius: 0 0 4px 4px;
+  -webkit-border-bottom-left-radius: 4px;
+  -webkit-border-bottom-right-radius: 4px;
+  border-style: solid;
+  border-color: #888;
+  background-color: #eee;
+  }
+
+div.logfilecontainer {
+  overflow: scroll;
+  position: relative;
+  top: 0;
+  padding: 4px;
+  margin: 0;
+  }
+
+div.logfilecontainer div.logfileline {
+  font-family: courier new, courier;
+  font-size: 14px;
+  padding: 0 0 0 28px;
+  margin: 0;
+  text-indent: -25px;
+  text-align: left;
+  }
+
+div.logfilecontainer pre.logfileline {
+  font-family: courier new, courier;
+  font-size: 14px;
+  padding: 0 0 0 5px;
+  margin: 0;
+  text-align: left;
+  }
+
+div.logfilecontainer .oddLine {
+  background-color: #ddd;
+  }

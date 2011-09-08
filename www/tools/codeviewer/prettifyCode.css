@@ -1,0 +1,33 @@
+/* Pretty printing styles. Used with prettify.js. */
+
+.str { color: #00d; }
+.kwd { color: #008; }
+.com { color: #070; }
+.hash { color: #907; }
+.typ { color: #000; }
+.lit { color: #046; }
+.pun { color: #800; }
+.pln { color: #000; }
+.tag { color: #008; }
+.atn { color: #606; }
+.atv { color: #080; }
+.dec { color: #406; }
+pre.prettyprint { padding: 2px; border: 1px solid #888; }
+table.code  {font-size: .9em; font-family: courier new; font-weight: bold; border-collapse: collapse; }
+td.code  {padding: 0; text-indent: -40px; color: #000;}
+td.lineno  {padding: 0 10px 0 0; font-size: .8em; text-align: right; color: #bbb}
+tr.oddrow  {background-color: #f5f5f5;}
+
+@media print {
+  .str { color: #060; }
+  .kwd { color: #006; font-weight: bold; }
+  .com { color: #600; font-style: italic; }
+  .typ { color: #404; font-weight: bold; }
+  .lit { color: #044; }
+  .pun { color: #440; }
+  .pln { color: #000; }
+  .tag { color: #006; font-weight: bold; }
+  .atn { color: #404; }
+  .atv { color: #060; }
+}
+

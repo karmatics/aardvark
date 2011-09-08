@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Aardvark Firefox Extension</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="copyright" content="Aardvark Firefox Extension (c)Copyright Karmatics. Design (c)Copyright by Pixel Plain." />
+<link rel="Shortcut Icon" href="favicon.ico" type="image/x-icon" />
+<style type="text/css" media="screen">
+@import url("screen.css");
+</style>
+
+</head>
+
+<body>
+<div id="page">
+
+<div id="intro" style="background: url('img/bookmarklet.gif') no-repeat;"><p id="whatitis" style="margin-top:0;">Aardvark can be run as a "bookmarklet" -- a small snippet of javascript code that is called when you select a bookmark -- to allow it to run in non-Firefox browsers, as well as allowing it to be quickly and easily modified and extended.</p>
+</div><!-- end intro -->
+
+<div id="col1">
+	<h2>Running Aardvark as a bookmarklet</h2>
+	<p>To run Aardvark as a bookmarklet in Firefox, IE, or Safari, just bookmark the following link:<br><br> <a href="javascript:document.getElementsByTagName('head')[0].appendChild(document.createElement('script')).setAttribute('src','http://www.karmatics.com/aardvark/bookmarklet.js')">Aardvark</a><br><br>To do this in Firefox, right click and select "Bookmark this link."  In IE, right click and select "Add to Favorites".  In Safari, drag the link to the bookmarks bar.</p>
+	<p>Minor caveats: running as a bookmarklet, Aardvark won't work in framed sites (but does anyone really use frames anymore?), and it doesn't seem to work in Gmail and a few other sites that work fine when running as a Firefox extension.  In IE, "view source" is not nearly as pretty as it is on Firefox and Safari.</p>
+		
+	<h2>How to extend Aardvark</h2>
+	<p>First, save the file <a href="bookmarklet.js">bookmarklet.js</a> to your own machine (if you are running a web server) or your web host, and make sure it is in a directory where it can be seen as a web ("http://") file.  You may name it anything you please.  Then create a bookmark and cut and paste the following as the "address":<textarea rows=1 style="font-size:1.2em; font-weight: bold; font-family: courier new; width:95%; white-space:pre-wrap; word-wrap: break-word;"  >javascript:document.getElementsByTagName('head')[0].appendChild(document.createElement('script')).setAttribute('src','http://localhost/bookmarklet.js')</textarea> (use the url of your file, of course).
+</p>
+<p>
+Then, it's just a matter of editing the file to have it do your bidding.  In the file are two examples of overriding commands, with extensive commenting.  In addition, you will probably want to refer to the files <a href="aardvarkMain.js">aardvarkMain.js</a>, <a href="aardvarkCommands.js">aardvarkCommands.js</a>,  <a href="aardvarkUtils.js">aardvarkUtils.js</a>, <a href="aardvarkDBox.js">aardvarkDBox.js</a> which contain the Aardvark code (these are the identical files used for the Firefox extension).
+	</p>
+<p>
+All Aardvark functions and variables are members of a global object called <i>aardvark</i>.  Note that this object is actually created in the bookmarklet.js file, but many members (such as all the Aardvark functions) are added to the <i>aardvark</i> object in the other Aardvark source files.</p><p>You may simply override any of these functions by assigning new functions to the member variables.  You may also add commands if you wish.
+</p>
+	
+	
+		<div id="makersmark">
+	<p id="pixelplain">
+	Site designed by <a href="http://www.pixelplain.com/" title="Visit Pixel Plain">Pixel Plain Web Design</a>
+	</p>
+
+	</div><!-- end makersmark -->
+
+	<p id="foot">Aardvark was originally created by Rob Brown (<a href="mailto:rjbrown@gmail.com">rjbrown@gmail.com</a>) and
+now belongs to <a target="_new" href="http://vark.com">Vark.com</a>. All Rights Reserved.</p>
+
+</div><!-- end col1 -->
+
+
+<div id="col2" style="margin-top: -45px">
+	<h2>Why extend Aardvark?</h2>
+	<ul>
+	<li>To have it help you develop and debug your own javascript web application, by having it call your own functions on elements you have selected</li>
+	<li>To give Aardvark new and cool functionality that I haven't bothered with, such as being able to completely edit any element on a page</li>
+	<li>To give it custom behavior that makes Aardvark more useful to you. Example: you can have it show the x and y coordinates of the element in the little yellow tag.</li>
+	</ul>
+
+	
+</div><!-- end col2 -->
+
+<div class="clear">&nbsp;</div>
+</div><!-- end page -->
+</body>
+<!-- Pixel Plain www.pixelplain.com -->
+</html>

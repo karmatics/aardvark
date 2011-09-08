@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html
+xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US" xmlns:x2="http://www.w3.org/2002/06/xhtml2">
+<style>
+body {
+	font-family: arial, helvetica;
+	font-size: 14px;
+	font-weight: normal;
+	}
+.savebuttoncontainer {
+	margin: 0px 10px 10px 10px;
+	float: right;
+	position: absolute;
+	top: 0;
+	left: 450px;
+	background-color: rgba(0,0,0,.5);
+	width: 211px;
+	height: 30px;
+	padding: 8px 8px 0px 8px; 
+	-webkit-border-radius: 0 0 8px 8px; 
+	border: solid rgba(0,0,0,.65); 
+	border-width: 0 2px 2px 2px; 
+	-webkit-box-shadow: 1px 1px 3px rgba(0,0,0,.5);
+  -moz-box-shadow: 1px 1px 3px rgba(0,0,0,.5);
+  }
+.savebuttontext {
+	font-size: 14px; 
+	margin-right: 5px; 
+	margin-bottom: 0px; 
+	font-weight: bold; 
+	position: absolute; 
+	top: 0px; 
+	left: 0px; 
+	text-align: center; 
+	vertical-align: middle; 
+	background-color: rgb(68,102,170); 
+	margin-left: 7px; 
+	margin-top: 5px; 
+	width: 100px; 
+	height: 19px; 
+	border-radius: 6px 6px 6px 6px; 
+	padding-top: 3px; 
+	padding-right: 0px; 
+	padding-bottom: 3px; 
+	padding-left: 0px; 
+	color: #fff; 
+	text-shadow: 2px 2px 3px #008, -1px -1px 3px #008;
+	}
+.savebutton {
+	position: absolute; top: 0; left: 0;width: 115px; height: 38px;
+	}
+</style>
+<link rel="stylesheet" type="text/css" href="../js/library/resources/PopupWindow.css" /> 
+
+<script src="../js/library/DomGenerator.js"></script> 
+<script src="../js/library/DomUtils.js"></script> 
+<script src="../js/library/Cookie.js"></script> 
+<script src="../js/library/Callbacks.js"></script> 
+<script src="../js/library/PopupWindow.js"></script> 
+<script src="../js/library/Logger.js"></script> 
+<script src="../js/library/NamedItemList.js"></script> 
+<script src="../js/library/ServerComm.js"></script> 
+<script src="../js/library/RemoteStorage.js"></script> 
+<script src="../js/tools/SharedWMITools.js"> </script>
+<script src="../js/tools/TemplateManager.js"> </script>
+<script src="../js/tools/TemplateOutput.js"> </script>
+<script src="../js/tools/TemplateEditor.js"> </script>
+<script src="../js/tools/TemplateUtils.js"> </script>
+
+<script type="text/javascript" src="../tools/downloadify/js/swfobject.js"></script>
+<script type="text/javascript" src="../tools/downloadify/js/downloadify.min.js"></script>
+<title>Template Maker</title>
+
+<body>
+
+<div class="savebuttoncontainer">
+  <div class="savebuttontext" style="">save html</div>
+  <div class="savebutton" style="" id="downloadify1"></div>
+  <div class="savebuttontext" style="left: 105px">save php</div>
+  <div class="savebutton" style="left: 105px" id="downloadify2"></div>
+</div>
+
+<div id="out" style="width: 100%; margin: 0; padding: 0;"></div>
+</body>
+<script>
+var out = document.getElementById("out");
+TemplateManager.openDialogBox();
+var filename1 = "loyaltyX.html";
+var filename2 = "loyaltyTemplates.php";
+
+var downloadifyOptions = {
+  filename: function(){
+    return filename1;
+    },
+  data: function(){ 
+    return (window.TemplateManager!=null)?TemplateManager.getSaveHtmlData():null;
+    },
+  onComplete: function(){ },
+  onCancel: function(){  },
+  onError: function(){ alert('nothin to save!'); },
+  swf: '../tools/downloadify/media/downloadify.swf',
+  downloadImage: '../tools/downloadify/images/buttons.png',
+  width: 115,
+  height: 38,
+  transparent: true,
+  append: false
+};
+
+Downloadify.create('downloadify1', downloadifyOptions);
+downloadifyOptions.filename = function(){
+    return filename2;
+    };
+downloadifyOptions.data = function(){ 
+    return (window.TemplateManager!=null)?TemplateManager.getSavePhpData():null;
+    };
+Downloadify.create('downloadify2', downloadifyOptions);
+</script>
+</html>
