@@ -15,7 +15,7 @@ module.exports = {
   },
 
   getFilename: function (name) {
-    var dir = '../docs/';
+    var dir = '../www/docs/';
     var alnum = "abcdefghijklmnopqrstuvwxyz1234567890";
     var len = name.length;
     var noDotAllowed = true;
@@ -87,13 +87,13 @@ module.exports = {
     }
     var file = this.getFilename(q.params.file)
     if (file == null) {
-      q.write({err: "no file"});
+      q.write({err: "no file: " + file});
       return;
     }
       
     _fs.readFile(file, 'utf8', function (err, data) {
         if (err)
-          q.write({err: "no file"});
+          q.write({err: "can't read file " + file});
         else {
           var i = data.indexOf("\n");
           if (i!= -1 && data[0] == '#')

@@ -1,0 +1,136 @@
+<html> 
+<style> 
+#mainContainer {
+  margin: 10px;
+  padding: 10px;
+  width: auto;
+  border: 2px solid #ccc;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  }
+table.inputItems {
+  border-collapse: collapse;
+  border-spacing: 0;
+  }
+ 
+table.inputItems td {
+  font-size: 14px;
+  border-bottom: 2px solid #fff;
+  }
+ 
+table.inputItems tr {
+  background-color: #eee;;
+  }
+ 
+table.inputItems td.label {
+  padding: 1px 5px;
+  text-align: right;
+  font-family: arial;
+  clear: both;
+  }
+input.textleft {
+  width: 150px;
+  font-size: 12px;
+  }
+input.textright {
+  width: 250px;
+  font-size: 12px;
+  }
+input.sel {
+  font-size: 12px;
+  }
+input.button {
+  margin-left: 250px;
+  }
+textarea.hiddenta {
+display: none;
+}
+div.lineno {
+  float: left;
+  font-size: 11px;
+  font-family: arial;
+  color: #444;
+  }
+div#time {
+  float: left;
+  margin-left: 65px;
+  font-size: 11px;
+  font-family: arial;
+  color: #444;
+  }
+br {
+ clear: both;
+}
+ 
+img#progresswheel {
+position: absolute;
+border: 0;
+top: 300px;
+left: 400px;
+display: none;
+}
+</style> 
+ 
+<link href="codeviewer/prettifyCode.css" type="text/css" rel="stylesheet" /> 
+<script type="text/javascript" src="codeviewer/prettify.js"></script> 
+<script type="text/javascript" src="codeviewer/prettifyMyEnhancements.js"></script> 
+<script type="text/javascript" src="../js/library/ServerComm.js"></script> 
+<script type="text/javascript" src="../js/library/JsonPClient.js"></script> 
+<script type="text/javascript" src="../js/library/GenericInputForm.js"></script> 
+<script type="text/javascript"> 
+PrettyCode.splitString = "<br>";
+</script> 
+ 
+<body> 
+<div id="mainContainer"> 
+
+<div id="myform">
+</div>
+
+
+<div class="lineno">hide line numbers: <input type="checkbox" id="linenocheckbox" onchange="PrettyCode.checkboxChanged()"/></div>
+<br>
+<div id="codediv"> 
+</div>
+ 
+</div> 
+
+<script> 
+var currObj;
+
+var showObj = function (o){
+  /*document.getElementById("mainContainer").style.backgroundColor = "#" + 
+    Math.floor(Math.random()*16).toString(16) + 
+    Math.floor(Math.random()*16).toString(16) + 
+    Math.floor(Math.random()*16).toString(16);
+  */
+  setTimeout(function() {
+    if (typeof(o) == 'string')
+      o = [o];
+    currObj = o;
+    var s = ServerComm.objectToJs (o, null, 100, true);
+    PrettyCode.insertCode (s, null, {elemId: 'codediv'});
+    }, 20);
+  };
+
+var submitForm = function () {
+  var table = document.getElementById('inputitems');
+  var a = table.getElementsByTagName ('input');
+  var s = "/" + a[0].value + '?callback=showObj';
+  for (var i=1; i<a.length; i+=2) {
+    var n = a[i].value;
+    var v = a[i+1].value;
+    if (n && n!= '' && v && v != null) {
+      s += '&' + escape(n) + "=" + escape(v);  
+      }
+    }
+  var script = document.createElement("script");
+  script.src = s + "&nocache=" + Math.round(Math.random()*10000);
+  //alert(s);
+  document.body.appendChild(script);
+  return false;
+  }
+
+</script> 
+</body> 
+</html> 

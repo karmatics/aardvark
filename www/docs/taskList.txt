@@ -1,1 +1,31 @@
-test
+#rob
+Improve GenericInputForm (client side) to better build arbitrary json structures:
+ * add ability to enter json for any parameter and have it sent as an object
+ * add ability to force numbers to be actual numbers
+ * add ability to have fields eval'd client side (so you can enter, for instance, Math.PI)
+ * make input form use color syntax editor (or, at least some of the stuff from snippet editor so it does indenting etc better)
+
+Have output toggle between text area and "pretty output", rather than "show line numbers"
+
+test framework:
+ ability to specify (in html file) a different callback for the response, (or additional one) beyond showing it as json
+
+Snippet editor: 
+ use new json post stuff to make snippet editor work without requiring php
+
+ system to send down snippet editor code as a single js file (currently a php program)
+
+Bookmarklet for test framework
+ so it does UI testing (etc)
+
+Client js built into test framework?? (needs discussion)
+
+Security: username password, saved in cookie, but sent in json (rather than as cookie, which may not work cross domain), settable and clearable
+
+Put karmatics under node.js using our static file server
+
+fix aardvark to work as firefox extension again
+
+allow others to use snippet bookmarklet?
+
+fix popup window to properly save position and save as it used to (in cookie?  local storage?)

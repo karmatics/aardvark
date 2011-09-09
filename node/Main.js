@@ -75,7 +75,7 @@ process.on('uncaughtException',function(error){
     });
 
 var appStartTime = new Date().getTime();
-/*
+
 var restartIfSourceFileChanged = function () {
   var validateDir = function (d) {
       return (d.name !== "node_modules");
@@ -96,8 +96,6 @@ var restartIfSourceFileChanged = function () {
   };
 
 setInterval(restartIfSourceFileChanged, 1500);
-
-*/
 
 //------------------------------------------------------------
 // once we know we have a post or a get, and have created a "query" 
