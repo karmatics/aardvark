@@ -1,32 +1,44 @@
 var _fs = require('fs');
 var _path = require('path');
-var _mkdirp = require('mkdirp');
-
 var _fileTools = require('../utils/FileTools');
+var _mkDirP = require('mkdirp');
+      
 
 module.exports = {
+  jsonPScripts: {
+    td4 : function (q, data) {
+      if (data.functionToRun) {
+        try {
+          var func;
+          var vm = require('vm');
+          var sandbox = {require: require, script: null};
+          vm.runInNewContext("script = " + data.functionToRun, sandbox, "td4 code");
+          sandbox.script(q, data);
+          delete (global.td4Script);
+        }
+        catch (e) {
+          q.write({error: e});
+          }
+        }
+      },
 
-  htmlScripts: {
-      
-    createFile: function (q) {
-      var s = '<html><body><b>';
-      var e = '</b><br></body></html>';
-
+    createFile: function (q, data) {
+      /*
       if (q.getCookies().letmein != "opensesame") {
         q.write(s + 'gimme a cookie!' + e);
         return;
-      }
-      var filename = _path.basename(q.params.filename);
-      var directories = _path.dirname(q.params.filename);
-      var timestamp = parseInt(q.params.timestamp);
+        }
+      */
+      var filename = _path.basename(data.filename);
+      var directories = _path.dirname(data.filename);
+      var timestamp = parseInt(data.timestamp);
 
       function done(err) {
-        console.log ('done');
         if (err) {
-          q.write(s + 'Error setting mtime: ' + err.toString() + e);
+          q.write({err: 'Error setting mtime: ' + err.toString()});
         }
         else {
-          q.write(s + 'Created dirs: ' + directories + '<br> Created file: ' + filename + ' with mtime: ' + timestamp + e);
+          q.write({err: 'Created dirs: ' + directories + ' Created file: ' + filename + ' with mtime: ' + timestamp });
         }
       }
 
@@ -49,101 +61,49 @@ module.exports = {
 
 
       function doTimestamp(err) {
-        console.log ('do timestamp');
-
         if (err) {
-          q.write(s + 'Error in writeFile: ' + err.toString() + e);
+          q.write({err: 'Error in writeFile: ' + err.toString()});
         }
         else {
           // child.exec for touch
-          require('child_process').exec("touch -m -t " + makeDateTimeString(timestamp) + " " + q.params.filename, done);
+          require('child_process').exec("touch -m -t " + makeDateTimeString(timestamp) + " " + data.filename, done);
         }
       }
 
       function doFile(err) {
-        console.log ('do file');
         if (err) {
-          q.write(s + 'Error in makeDirectory: ' + err.toString() + e);
+          q.write({err: 'Error in makeDirectory: ' + err.toString()});
         }
         else {
-          _fs.writeFile(q.params.filename, q.params.contents, doTimestamp);
+          _fs.writeFile(data.filename, data.contents, doTimestamp);
         }
       }
 
       if (filename.length != 0) {
-        _makeDirectory(directories, doFile);
+        _mkDirP(directories, 0755, doFile);
       }
       else {
-        q.write(s + 'No filename!' + e);
+        q.write({err: 'No filename!' + e});
       }
     },
 
-    //  "static" : function (q) {
-    //    if (q.params.filename != null) { 
-    //     _fs.readFile(q.params.filename, function (err, data) {
-    //        if (err)
-    //          q.write("<b>" + err.toString()+"</b>");
-    //        else
-    //          q.write(data);
-    //        });
-    //      }  
-    //   },
+  //  "static" : function (q) {
+  //    if (q.params.filename != null) { 
+  //     _fs.readFile(q.params.filename, function (err, data) {
+  //        if (err)
+  //          q.write("<b>" + err.toString()+"</b>");
+  //        else
+  //          q.write(data);
+  //        });
+  //      }  
+  //   },
 
-  },
 
-  jsonPScripts: {
-    td4 : function (q, data) {
-      if (data.functionToRun) {
-        try {
-          var func;
-          var vm = require('vm');
-          console.log(data.functionToRun);
-          var sandbox = {require: require, script: null};
-          vm.runInNewContext("script = " + data.functionToRun + ";", sandbox, "seeifitworks.js");
-          sandbox.script(q, data);
-          delete (global.td4Script);
-        }
-        catch (e) {
-          q.write({error: e});
-          }
-        }
-      }
-    },
-  
-  jsonGetScripts: {
-  
-    crash : function (q) {
-      var r;
-      r.bleh = x;
-      q.write('hi!');
-      },
-
-    showMod : function (q) {
-      var x = [];
-      var mod = require(q.params.mod);
-      if (mod != null) {
-        for (var i in mod) {
-          if (typeof(mod[i]) == 'function') {
-            var s = mod[i].toString();
-            var index;
-            if ((index = s.indexOf('function')) == 0)
-              index = 9;
-            else
-              index = 0;
-            if ((index2 = s.indexOf(')', index)) != -1)
-              x.push(i + ": " + s.substring(index, index2+1));
-          }
-        }
-      }
-      q.write(x);
-      return;
-    }, 
-
-    testFileMod: function (q) {
+    testFileMod: function (q, data) {
       var t1 = new Date().getTime();
       _fileTools.modifyFile(
-        '/Users/rob/scratch/both.css',
-        '/Users/rob/scratch/both2.css',
+        data.file1,
+        data.file2,
         false,
         false,
         [
@@ -181,7 +141,36 @@ module.exports = {
           }
         }
       );
-    },
+    }
+  },
+  
+  jsonGetScripts: {
+    crash : function (q) {
+      var r;
+      r.bleh = x;
+      q.write('hi!');
+      },
+
+    showMod : function (q) {
+      var x = [];
+      var mod = require(q.params.mod);
+      if (mod != null) {
+        for (var i in mod) {
+          if (typeof(mod[i]) == 'function') {
+            var s = mod[i].toString();
+            var index;
+            if ((index = s.indexOf('function')) == 0)
+              index = 9;
+            else
+              index = 0;
+            if ((index2 = s.indexOf(')', index)) != -1)
+              x.push(i + ": " + s.substring(index, index2+1));
+          }
+        }
+      }
+      q.write(x);
+      return;
+    }, 
 
     md : function (q) {
       _mkdirp(q.params.d, "0777", function (e) {
