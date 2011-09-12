@@ -112,10 +112,10 @@ prototype : {
       		var a = s.split(",");
       		x = parseInt(a[0]);
       		y = parseInt(a[1]);
-      		/*if (a.length == 4) {
+      		if (a.length == 4) {
 						w = parseInt(a[2]);
 						h = parseInt(a[3]);
-      			}*/
+      			}
       		} 
         }
       PopupWindow.displayedList.insert (this.name, this);

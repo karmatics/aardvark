@@ -99,7 +99,7 @@ RemoteStorage = {
  // implementation: below here is not for public consumption
  user: null,
  password: null,
- url: "http://localhost/tools/remotestore.php",
+ url: "http://localhost:81/tools/remotestore.php",
 
  jsonCallback: function (response) {
   var request, id = response.id;

@@ -8,7 +8,7 @@ var serverSettings = {
     extensions: ["php"]
   }, */
   fileServer: {
-    path: "../",
+    path: "../www/",
     specificFiles: [
 
     ]

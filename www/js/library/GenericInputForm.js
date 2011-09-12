@@ -14,10 +14,10 @@ var GenericInputForm = {
     for (var i in description) {
       var format = description[i].format;
       var row = null, isBig;
-      if (format == 'string' || format == 'bigstring')
-        row = this.buildStringInput (i, description[i], (format == 'bigstring'));
-      else if (format == 'bool')
-        row = this.buildBooleanInput (i, description[i]);
+      if (format === 'textinput')
+        row = this.buildTextInput (i, description[i], (description[i].multiline != null));
+      else if (format === 'checkbox')
+        row = this.buildCheckbox (i, description[i]);
       if (row) {
         tbody.appendChild(row.elem);
         description[i].row = row;
@@ -30,7 +30,7 @@ var GenericInputForm = {
   prototype : {
 
     //--------------------------------------------------
-    buildStringInput : function (name, definition, isBig) {
+    buildTextInput : function (name, definition, isBig) {
       var out = {}, selectElem, thirdTd;
       with (DomGenerator) {
           out.elem = TR (
@@ -50,8 +50,11 @@ var GenericInputForm = {
         var samples = definition.samples;
         for (var i = 0; i<samples.length; i++) {
           var n = samples[i];
-          if (typeof(n) != "string")
-            n = GenericInputForm.formatJson(JSON.stringify(n));            
+          if (typeof(n) === "number") {
+            }
+          if (typeof(n) !== "string") {
+            n = GenericInputForm.formatJson(JSON.stringify(n));
+            }
           selectElem.appendChild (OPTION ({value:n},
                    ((n.length > 50)? n.substring(0, 40) + '...' : n)));
           thirdTd.appendChild(selectElem);
@@ -68,7 +71,7 @@ var GenericInputForm = {
       },
   
     //--------------------------------------------------
-    buildBooleanInput : function (name, definition) {
+    buildCheckbox : function (name, definition) {
       var out = {}, selectElem, thirdTd;
       with (DomGenerator) {
           out.elem = TR (
@@ -87,32 +90,49 @@ var GenericInputForm = {
 
     // return the values the user has entered (empty ones will be null)
     getValues : function (format) {
-      var out = {};
-      for (var i in this.description) {
-        var item = this.description[i];
-        if (item.row) {
-          var v = item.row.input.value;
-          if (v == '')
-            v = null;
-          if (v != null) {
-            if (item.json)
-              out[i] = eval( '(' + v + ')' );  
-            else 
-              out[i] = v;
+      try {
+        var out = {}, value;
+        for (var i in this.description) {
+          var item = this.description[i];
+
+          if (item.row) {
+            var v = item.row.input.value;
+            if (v == '')
+              v = null;
+            if (item.format === 'checkbox') {
+               out[i] = (v === 'on')?true:false;
             }
+            else if (v == null) {
+              out[i] = (item.defaultValue !== undefined) ? item.defaultValue : null;
+            }
+            else {
+              if (item.evaluate) {
+                eval( 'out[i] = (' + v + ')' ); 
+              }
+              else if (item.type === 'int') {
+                out[i] = parseInt(v);
+              }
+              else if (item.type === 'float') {
+                out[i] = parseFloat(v);
+              }
+              else {
+                out[i] = v;
+              }
+            }
+          
           }
-        else {
-          // out[i] = {}; // todo: send default value?
+          else {
+            out[i] = null; // todo: send default value?
           }
         }
-      if (format=='urlencode')
-        return encodeURIComponent(JSON.stringify(out));
-      else if (format=='json')
-        return (JSON.stringify(out));
-      else 
-        return out;
+      return out;
       }
-    },
+    catch (e) {
+      alert ("error: " + JSON.stringify(e));
+      return null;
+      } 
+    }
+   },
 
   // formatJson() :: formats and indents JSON string
   // todo: move somewhere else for general use
@@ -159,8 +179,7 @@ var GenericInputForm = {
       }
     }
     return retval;
-  }    
-
+   } 
   };
   
 // init ------------------------
