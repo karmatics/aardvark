@@ -3,8 +3,12 @@ maxUrl : 1500,
 
 currRequests : {},
 
+// this function is known to the server
 serverCallback: function (id, data) {
-  showObj(data);
+  if (this.currRequests[id]) {
+    this.currRequests[id].callback(data);
+    delete(this.currRequests[id]);
+    }
   },
 
 send : function (scriptName, data, callbackFunction) {
@@ -20,7 +24,8 @@ send : function (scriptName, data, callbackFunction) {
       e.src = prefix + dataStrings[i] + '&chunk=' + i;
       e.type = 'text/javascript';
       document.body.appendChild(e);
-      Logger.write(e.src);
+      if(window.logger)
+        Logger.write(e.src);
       }
     this.currRequests[id] = {
       callback: callbackFunction,

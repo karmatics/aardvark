@@ -1,0 +1,1 @@
+{"js":"SimplePath.getElementsByPath(\n  aardvark.pathFromEditor(),\n  null, \n  function (elem, i) {\n    log(elem.innerHTML);\n    log(\" url: \" + elem.href)\n  }\n);\nvar x = 234 + \"asdfasdf asfd asdf asdf asdf asfd \" + \n\"asdfa sdfasdf asdf asfd asfd \" + \"asdfasdfasdfasdf\" +\n\"asdfasdfasdf\";\n\n\n\n","name":"nyt scrape","num":25}

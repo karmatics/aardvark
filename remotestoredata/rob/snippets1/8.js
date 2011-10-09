@@ -1,0 +1,1 @@
+{"js":"var a = document.getElementsByTagName(\"iframe\");\nfor (var i=a.length-1; i>=0; i--)\n  a[i].parentNode.removeChild(a[i]);\na = document.getElementsByTagName(\"object\");\nfor (var i=a.length-1; i>=0; i--)\n  a[i].parentNode.removeChild(a[i]);","name":"kill flash","num":8}

@@ -53,7 +53,7 @@ var GenericInputForm = {
           if (typeof(n) === "number") {
             }
           if (typeof(n) !== "string") {
-            n = GenericInputForm.formatJson(JSON.stringify(n));
+            n = PrettyCode.formatJson(JSON.stringify(n));
             }
           selectElem.appendChild (OPTION ({value:n},
                    ((n.length > 50)? n.substring(0, 40) + '...' : n)));
@@ -132,54 +132,9 @@ var GenericInputForm = {
       return null;
       } 
     }
-   },
+   }
 
-  // formatJson() :: formats and indents JSON string
-  // todo: move somewhere else for general use
-  // from http://ketanjetty.com/coldfusion/javascript/format-json/
-  formatJson : function (val) {
-    var inQuotes = false;
   
-    var retval = '';
-    var str = val;
-    var pos = 0;
-    var strLen = str.length;
-    var indentStr = ' ';
-    var newLine = '\n';
-    var char = '';
-    
-    for (var i=0; i<strLen; i++) {
-      char = str.substring(i,i+1);
-
-      if (char == '"') {
-        inQuotes = !inQuotes;
-        }      
-      
-      if (!inQuotes && (char == '}' || char == ']')) {
-        retval = retval + newLine;
-        pos = pos - 1;
-        
-        for (var j=0; j<pos; j++) {
-          retval = retval + indentStr;
-        }
-      }
-      
-      retval = retval + char;	
-      
-      if (!inQuotes && (char == '{' || char == '[' || char == ',')) {
-        retval = retval + newLine;
-        
-        if (char == '{' || char == '[') {
-          pos = pos + 1;
-        }
-        
-        for (var k=0; k<pos; k++) {
-          retval = retval + indentStr;
-        }
-      }
-    }
-    return retval;
-   } 
   };
   
 // init ------------------------

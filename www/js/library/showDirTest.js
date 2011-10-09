@@ -1,5 +1,5 @@
 serverSideFunction = function (q, inputData) {
-  var _fileTools = require("../utils/FileTools");
+  var _fileTools = require("./examples/FileTools");
     var t1 = new Date().getTime();
     if (inputData.dirname != null) {
       var dirCb = null;

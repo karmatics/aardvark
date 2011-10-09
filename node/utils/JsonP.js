@@ -1,7 +1,7 @@
 var _jsonAccumulator = {};
 
 module.exports = {
-  process : function (q) {
+  processRequest : function (q) {
     if (q.params.data && q.params.id) {
       var item, id = parseInt(q.params.id);
       if(_jsonAccumulator[id] === undefined) {
@@ -17,7 +17,6 @@ module.exports = {
       if (item.count == item.expected) {
         var data = item.data.join('');
         data = JSON.parse(data);
-        
         q.write = function (o) {
           q.response.writeHead(200, {'Content-Type': 'text/javascript'});
           q.response.end("JsonPClient.serverCallback(" + id + "," + JSON.stringify(o) + ");");
@@ -27,10 +26,13 @@ module.exports = {
       }
       else {
         q.response.writeHead(200, {'Content-Type': 'text/javascript'});
+        // empty javascript response (since this is not the final
+        // request of a multipart request
         q.response.end("");
         return null;
       }
     }
+  // something wrong happened
   q.response.writeHead(200, {'Content-Type': 'text/javascript'});
   q.response.end("JsonPClient.serverCallback(" + id + ", null);");
   return null

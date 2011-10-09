@@ -1,0 +1,1 @@
+{"js":"Logger.clear();","mode":0,"name":"clear logger","num":5}

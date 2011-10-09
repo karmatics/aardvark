@@ -71,9 +71,9 @@ display: none;
 }
 </style> 
  
-<link href="/js/thirdparty/prettifyCode.css" type="text/css" rel="stylesheet" /> 
-<script type="text/javascript" src="/js/thirdparty/prettify.js"></script> 
-<script type="text/javascript" src="../js/thirdparty/prettifyMyEnhancements.js"></script> 
+<script type="text/javascript" src="../js/library/showDirTest.js"></script> 
+<link href="../js/thirdparty/prettifyCode.css" type="text/css" rel="stylesheet" /> 
+<script type="text/javascript" src="../js/thirdparty/prettify.js"></script> 
 <script type="text/javascript" src="../js/library/ServerComm.js"></script> 
 <script type="text/javascript" src="../js/library/JsonPClient.js"></script> 
 <script type="text/javascript" src="../js/library/GenericInputForm.js"></script> 
@@ -83,27 +83,19 @@ PrettyCode.splitString = "<br>";
  
 <body> 
 <div id="mainContainer"> 
-
 <div id="myform">
 </div>
-
 
 <div class="lineno">hide line numbers: <input type="checkbox" id="linenocheckbox" onchange="PrettyCode.checkboxChanged()"/></div>
 <br>
 <div id="codediv"> 
 </div>
- 
 </div> 
 
 <script> 
 var currObj;
 
 var showObj = function (o){
-  /*document.getElementById("mainContainer").style.backgroundColor = "#" + 
-    Math.floor(Math.random()*16).toString(16) + 
-    Math.floor(Math.random()*16).toString(16) + 
-    Math.floor(Math.random()*16).toString(16);
-  */
   setTimeout(function() {
     if (typeof(o) == 'string')
       o = [o];
@@ -130,7 +122,6 @@ var submitForm = function () {
   document.body.appendChild(script);
   return false;
   }
-
 </script> 
 </body> 
 </html> 

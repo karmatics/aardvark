@@ -1,21 +1,32 @@
 JsSnippetEditor = {
+  jsLoaded : [],
+  globals : {},
 
   constructor: function (remoteSaveData) {
- {
-      if (remoteSaveData)
-        JsSnippetEditor.remoteSaveData = remoteSaveData;
-      RemoteStorage.setParams(JsSnippetEditor.remoteSaveData[0],  JsSnippetEditor.remoteSaveData[1],  JsSnippetEditor.remoteSaveData[3]);
-      RemoteStorage.getData(JsSnippetEditor.remoteSaveData[2],
-      function (response){
-         if(response.status == "ok"){
-           JsSnippetEditor.setData(response.text);
-           }
-         else {
-           alert ("failed to get snippets: " + response.status);
-           };
-         }
-       );
-      }
+    if (remoteSaveData) {
+      JsSnippetEditor.remoteSaveData = remoteSaveData;
+      JsonPClient.send(
+          remoteSaveData.url + "jsonP", 
+            {
+            handlerName: "getSnippets",
+            user: remoteSaveData.user,
+            snippetSet: remoteSaveData.group,
+            password: remoteSaveData.pw
+            },
+            function (response){
+               if(response){
+                 response.snippets.sort (function (a,b) {
+                  return a.num - b.num;
+                  });
+                 JsSnippetEditor.setData(response.snippets);
+                 }
+               else {
+                 alert ("failed to get snippets: " + response.status);
+                 };
+               }
+            );
+    }
+
     var self = this;
     this.window = new PopupWindow (
       "Snippet Editor",
@@ -30,7 +41,7 @@ JsSnippetEditor = {
           TR (
             TD (
               DIV (
-                this.textArea = TEXTAREA ({style: {width: "350px", height: "150px"}})
+                this.textArea = TEXTAREA ({style: {width: "350px", height: "150px"}, spellcheck: false})
               )
             )  
           ),
@@ -68,8 +79,51 @@ JsSnippetEditor = {
     this.setNameInputVisibility ();
     JsSnippetEditor.addListener(this);
     this.window.show ();
+    
+    var f = function (s) {
+        var log = function (x, y, z) {
+          Logger.write (x, y, z);
+        };
+        var g = JsSnippetEditor.globals;
+        with (DomGenerator) {
+          try { 
+            var x = true;
+          }
+          catch (e) {
+            JsSnippetEditor.processException(e);        
+          }
+        }
+      };
+    var a = f.toString().split("var x = true;");
+    JsSnippetEditor.fs = {
+      part1: a[0],
+      part2: a[1],
+      offset: a[0].split('\n').length
+    };
     },
 
+onerrorFunction : function (error, file, lineNo) {
+    //if (file == 'document.location.href') {
+      Logger.write("error, line " + (lineNo-JsSnippetEditor.fs.offset) + "\n" + error);
+      //}
+ },
+
+
+ processException : function (e) {
+    if (Logger != null) {
+      if (e.stack) {
+        var a = e.stack.split('\n');
+        e.stack = [];
+        for (var i=0; i<a.length; i++) {
+          if(a[i].indexOf('evaluateCode')!= -1) 
+            break;
+          e.stack.push(a[i]);
+        }
+      }
+      Logger.write (e);
+    }
+ }, 
+ 
  prototype : {
   populateNameMenu : function (selectedItem) {
       var selElem = this.nameSelectElem;
@@ -96,9 +150,7 @@ JsSnippetEditor = {
       this.setNameInputVisibility ();
       },
 
-  
   setNameInputVisibility : function () {
-      // Logger.write (this.nameSelectElem.value);
       if (this.nameSelectElem.value == "_new_") {
           this.nameInputElem.value = "";
           this.nameInputElem.style.display = "";
@@ -228,45 +280,91 @@ JsSnippetEditor = {
   nameSelectHandler : function () {
     this.getDataBasedOnGui ();
     },
+    
+  //----------------------------------
+  
+  
+  loadJsFiles : function (files, callback, defaultPath) {
+      var count = 0;
+      var loadedCount = 0;
+      
+      for (var i=0; i<files.length; i++) {
+        (function (which) {
+          var url = defaultPath + files[which] + ".js";
+          //if (!JsSnippetEditor.jsLoaded[url])
+           {
+            var s = document.createElement('script');
+            s.src = url + "?" + Math.floor(Math.random()*200);
+            count++;
+            s.onload = function () {
+              JsSnippetEditor.jsLoaded[url] = true;
+              loadedCount++;
+              if (count === loadedCount)
+                callback(files, count);
+              };
+            document.body.appendChild(s);
+            }
+        })(i);
+        }
+      if (count == 0)
+        callback(files, count);
+  }, 
+  
   
   //-----------------------------------------
   runButtonHandler : function () {
-    var result = null, evString;
+    var result = null, evString, self = this;
+
+    var a = this.textArea.value.split('\n');
+    var files = [];
+    for (var i=0; i<a.length; i++) {
+      var s = a[i];
+      if (s[0] == '#') {
+        files.push(s.substring(1));
+        }
+      else {
+        a.splice(0, i);
+        break;
+        }
+      }
+    evString = a.join('\n');
     
-    //evString = "result=(function editorFunc(){" + this.textArea.value + "})();"
-    try {
-        var log = function (x, y, z) {
-          Logger.write (x, y, z);              
-          };
-        with (DomGenerator) {
-          var editor = this;
-          
-          /*var scriptElem=document.createElement('script');
-          scriptElem.appendChild (document.createTextNode(this.textArea.value));
-          var b = document.body.appendChild(scriptElem);
-          */
-          
-          eval(this.textArea.value); // evString);
-          }
-        if (result != null)
-            Logger.write (result, 200);
-        }
-    catch (e) {
-        if (Logger != null) {
-          Logger.write ("message: <b>" + e.message + "</b>");
-          Logger.write ("error: <b>" + e.nameOfItem + "</b>");
-          Logger.write ("---------- <b>stack trace</b> ------");
-          if (e.stack != null) {
-            var x = e.stack.split("\n");
-            for (var i=x.length-1; i>=0; i--){
-                if (x[i].length > 0)
-                    Logger.write("&nbsp;&nbsp;<b>" + x[i] + "</b>");
-                }
-            }
-          }
-        return;
-        }
-    },
+    var indentStr = '                             ';
+
+    function makeIndent(n) {
+     return indentStr.substring(0,n*2);
+    };
+
+    JsParser.processJs(evString);
+    var s = '';
+    for (var i=0; i<JsParser.lines.length; i++)
+      s += makeIndent(JsParser.lines[i].newIndent) + JsParser.lines[i].string + '\n';
+    
+    this.textArea.value = s;
+    
+    if (files.length!=0) {
+      this.loadJsFiles(files, function (f,c) {
+          self.evaluateCode(evString);
+        },
+      JsSnippetEditor.remoteSaveData.url + "js/library/");    
+    }
+    else {
+      this.evaluateCode(evString);
+    }
+  },
+  
+  evaluateCode : function(code) {
+    var s = document.createElement('script');
+    s.appendChild(document.createTextNode(
+          '(' + 
+          JsSnippetEditor.fs.part1 + 
+          code +
+          JsSnippetEditor.fs.part2 + 
+          ')();'          
+          ));
+    window.onerror = JsSnippetEditor.onerrorFunction;
+    document.body.appendChild(s);
+  },
   
   //--------------------------------------------
   saveButtonHandler : function () {
@@ -278,9 +376,8 @@ JsSnippetEditor = {
             return;
             }
         }
-    JsSnippetEditor.updateByName (n, this.textArea.value, 0);
+    JsSnippetEditor.updateByName (n, this.textArea.value);
     this.setNameInputVisibility();
-    JsSnippetEditor.saveToRemoteStorage();
     },
   
   //---------------------------------------------
@@ -295,10 +392,6 @@ listeners : [],
 namedItems : [],
 
 setData : function (data) {
-    if (typeof (data) == "string")
-      // alert (data)
-      data = eval(data);
-      //out.value = data;
     this.namedItems = data;
     this.alertListeners();
   },
@@ -339,19 +432,33 @@ getByName : function (nameOfItem) {
   },
 
 //----------------------------------------
-updateByName : function (nameOfItem, js, mode) {
+updateByName : function (nameOfItem, js) {
   var item = this.getByName(nameOfItem);
   if (item) {
     item.js = js;
     }
   else {
-    this.namedItems.push({
+    item = {
         js: js,
-        mode: mode,
         name: nameOfItem
-        });
-     this.alertListeners ();
-     }
+        };
+    this.namedItems.push(item);
+    this.alertListeners ();
+    }
+  JsonPClient.send(
+    JsSnippetEditor.remoteSaveData.url + "jsonP",
+      {
+       handlerName: "saveSnippet",
+       user: JsSnippetEditor.remoteSaveData.user,
+       snippetSet: JsSnippetEditor.remoteSaveData.group,
+       password: JsSnippetEditor.remoteSaveData.pw,
+       snippet : item
+      },
+     function (response) {
+      if (response.snippetNum)
+        item.num = response.snippetNum
+      }
+     );
   },
 
 //----------------------------------------
@@ -359,31 +466,28 @@ deleteByName : function (nameOfItem) {
   var list = [], count = 0;
   
   for (var i=0; i<this.namedItems.length; i++) {
-    if (this.namedItems[i].name != nameOfItem)
-        list.push (this.namedItems[i]);
+    if (this.namedItems[i].name == nameOfItem) {
+      this.namedItems[i].js = null;
+      JsonPClient.send(
+       JsSnippetEditor.remoteSaveData.url + "jsonP",
+        {
+         handlerName: "saveSnippet",
+         user: JsSnippetEditor.remoteSaveData.user,
+         snippetSet: JsSnippetEditor.remoteSaveData.group,
+         password: JsSnippetEditor.remoteSaveData.pw,
+         snippet : this.namedItems[i]
+        },
+       function(){}
+       );
+       }
+    else {
+      list.push (this.namedItems[i]);
+      }
     }
   this.namedItems = list;
   this.alertListeners ();
   },
 
-
-saveRemotely : function () {
-  RemoteStorage.setParams(JsSnippetEditor.remoteSaveData[0],
-    JsSnippetEditor.remoteSaveData[1]);
-  RemoteStorage.putData(
-   ServerComm.objectToJs(this.namedItems),
-   false,
-   JsSnippetEditor.remoteSaveData[2],
-   function (response){
-     if(response.status == "ok"){
-       log ("done");
-       }
-     else {
-       log("failed: " + response.status);
-       };
-     }
-   );
-  },
 
 //----------------------------------------
 getNames : function () {
@@ -391,25 +495,8 @@ getNames : function () {
   for (var i=0; i<this.namedItems.length; i++)
       a.push (this.namedItems[i].name);
   return a;
-  },
-  
-saveToRemoteStorage : function () {
-  RemoteStorage.setParams(JsSnippetEditor.remoteSaveData[0],
-      JsSnippetEditor.remoteSaveData[1]);
-  RemoteStorage.putData(
-   ServerComm.objectToJs(JsSnippetEditor.namedItems),
-   false,
-   JsSnippetEditor.remoteSaveData[2],
-   function (response){
-     if(response.status == "ok"){
-       }
-     else {
-       log("failed to save snippet data: " + response.status);
-       };
-     }
-    );
   }
- };
+  };
  
 // init ------------------------
 (function (name) {

@@ -1,0 +1,1 @@
+{"js":"var i = 1;\nwhile (window['elem'+i] != null) {\n  delete window['elem'+i]\n  i++;\n}\n\n","name":"clear global elems","num":24}

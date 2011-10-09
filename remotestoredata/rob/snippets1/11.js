@@ -1,0 +1,1 @@
+{"js":"var src = \"../js/library/CssStuff.js\";\nvar s = document.createElement('script');\ns.src = src + \"?\" + Math.floor(Math.random()*200);\ns.onload = function () {\n log('onload');\n }\ndocument.body.appendChild(s);\n","name":"load js file","num":11}

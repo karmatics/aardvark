@@ -86,6 +86,8 @@ displayMessage : function (msg) {
     this.window.textElem.appendChild ((msg.usePre)?DomGenerator.PRE(props):DomGenerator.DIV(props));
     this.lineCount++;
     this.scrollToBottom ();
+    // console.log(DomUtils.getWindowDimensions());
+    // console.log(DomUtils.getPos(this.window.element));
     },
 
 //-----------------------------------
@@ -122,7 +124,11 @@ write : function (data, level, type, limit) {
   },
 
 //-----------------------------------
-clearOldMessages : function (ageSeconds) {
+clear : function (ageSeconds) {
+while (this.window.textElem.lastChild)
+  this.window.textElem.removeChild(this.window.textElem.lastChild);
+/*
+
   var earliestTime = Math.round (new Date().getTime() / 1000) - ageSeconds;
   var a = this.queuedMessages, l = this.queuedMessages.length;
   if (l > 0 && a[0].time < earliestTime) {
@@ -132,9 +138,8 @@ clearOldMessages : function (ageSeconds) {
             newArray.push(a[i]);
         }
       this.queuedMessages = newArray;
-      }
+      } */
   },
-
 //-----------------------------------
 forceToWindow : function  () {
   if (this.window && this.window.contentElem) {
@@ -145,7 +150,21 @@ forceToWindow : function  () {
       this.window.textElem.style.height = (dims.height-100) + "px";
     }
   },
-  
+
+ioBoxes : {},
+
+getIoBox : function (num, create) {
+  var count = 0;
+  for (var i in ioBoxes) {
+    count++;  
+  }
+if(count ==1)
+  return ioBoxes[i];
+if (count == 0 && create)
+  return this.makeIoBox();
+return null;
+},
+
 //-------------------------------------------------
 makeIoBox : function () {
     var i;
@@ -156,8 +175,9 @@ makeIoBox : function () {
       }
     var pw = new PopupWindow("text box [io" + i + "]", "io", true);
     var t = window["io"+i] = DomGenerator.TEXTAREA (
-        { style: {
-          spellCheck: "",
+        {
+        spellcheck: false,
+        style: {
           margin:"0px 3px 3px 0px",
           backgroundColor: "rgba(0,0,0,.5)",
           color: "#0f0", 
@@ -175,11 +195,59 @@ makeIoBox : function () {
     pw.windowCallback = function (type, win) {
       if (type == "kill")
          window["io"+i] = null;
+         //delete (self.ioBoxes[i]);
       }
     t.win = pw;
+    // this.ioBoxes[i] = t;
     t.focus();
     return t;
+    },
+        // formatJson() :: formats and indents JSON string
+  // todo: move somewhere else for general use
+  // from http://ketanjetty.com/coldfusion/javascript/format-json/
+  formatJson : function (val) {
+    var inQuotes = false;
+  
+    var retval = '';
+    var str = val;
+    var pos = 0;
+    var strLen = str.length;
+    var indentStr = ' ';
+    var newLine = '\n';
+    var char = '';
+    
+    for (var i=0; i<strLen; i++) {
+      char = str.substring(i,i+1);
+
+      if (char == '"') {
+        inQuotes = !inQuotes;
+        }      
+      
+      if (!inQuotes && (char == '}' || char == ']')) {
+        retval = retval + newLine;
+        pos = pos - 1;
+        
+        for (var j=0; j<pos; j++) {
+          retval = retval + indentStr;
+        }
+      }
+      
+      retval = retval + char;	
+      
+      if (!inQuotes && (char == '{' || char == '[' || char == ',')) {
+        retval = retval + newLine;
+        
+        if (char == '{' || char == '[') {
+          pos = pos + 1;
+        }
+        
+        for (var k=0; k<pos; k++) {
+          retval = retval + indentStr;
+        }
+      }
     }
+    return retval;
+   }   
 
   
 };

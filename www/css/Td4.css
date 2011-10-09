@@ -1,0 +1,77 @@
+.str { color: #00d; }
+.kwd { color: #008; }
+.com { color: #070; }
+.hash { color: #907; }
+.typ { color: #000; }
+.lit { color: #046; }
+.pun { color: #800; }
+.pln { color: #000; }
+.tag { color: #008; }
+.atn { color: #606; }
+.atv { color: #080; }
+.dec { color: #406; }
+pre.prettyprint { padding: 2px; border: 1px solid #888; }
+table.code  {font-size: .9em; font-family: courier new; font-weight: bold; border-collapse: collapse; }
+td.code  {padding: 0; text-indent: -40px; color: #000;}
+td.lineno  {padding: 0 10px 0 0; font-size: .8em; text-align: right; color: #bbb}
+tr.oddrow  {background-color: #f5f5f5;}
+
+.td4Container {
+  margin: 10px;
+  padding: 10px;
+  width: auto;
+  border: 2px solid #ccc;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  }
+table.inputItems {
+  border-collapse: collapse;
+  border-spacing: 0;
+  }
+table.inputItems td {
+  font-size: 14px;
+  border-bottom: 2px solid #fff;
+  }
+table.inputItems tr {
+  background-color: #eee;;
+  }
+table.inputItems td.label {
+  padding: 1px 5px;
+  text-align: right;
+  font-family: arial;
+  clear: both;
+  }
+input.textleft {
+  width: 150px;
+  font-size: 12px;
+  }
+input.textright {
+  width: 250px;
+  font-size: 12px;
+  }
+input.sel {
+  font-size: 12px;
+  }
+input.button {
+  margin-left: 250px;
+  }
+textarea.hiddenta {
+display: none;
+}
+div.lineno {
+  float: left;
+  font-size: 11px;
+  font-family: arial;
+  color: #444;
+  }
+br {
+ clear: both;
+}
+ 
+img#progresswheel {
+position: absolute;
+border: 0;
+top: 300px;
+left: 400px;
+display: none;
+}

@@ -1,30 +1,8 @@
-
 var Callbacks = {
-
-callbackList : [],
-
-
-//---------------------------------------------------------------
-callback: function (func, args, thisObject) {
-  var argsCopy = (args)?args.slice(0):[];
-  var cb = function () {
-    if (arguments.length) {
-      var len1 = arguments.length, len2 = argsCopy.length;
-      var a = argsCopy.concat(Array.prototype.slice.call(arguments));
-      return func.apply (thisObject, a);
-      }
-    var ret = func.apply (thisObject, argsCopy);
-    return ret;
-    };
-  cb.args = argsCopy;
-  return cb;
-  },
 
 //-------------------------------------------
 setMouseCallback : function(elem, callback, moreParams) {
-//todo: eliminate array support
-elem.mouseCallback = {callback: (callback.func!=null) ? callback : 
-		Callbacks.create.apply (null, callback)};
+elem.mouseCallback = {callback: callback};
 elem.onmouseover = Callbacks.mouseCallbacks.over;
 elem.onmouseout = Callbacks.mouseCallbacks.out;
 
@@ -35,30 +13,35 @@ if (moreParams && moreParams.draggable) {
     }
 else 
     elem.onclick = Callbacks.mouseCallbacks.click;
-    
-if (window.KarmaticsDebug)    
-    Callbacks.callbackList.push ({
-      callback: elem.mouseCallback.callback,
-      type: "mouse",
-      element: elem,
-      elementType: elem.tagName
-      });
-return elem;
 },
 
+//-------------------------------------------------
+// cross-browser event handling with listeners (if available)
+setListener : function(element, eventType, handler) {
+if(element.addEventListener) {
+	element.addEventListener(eventType, handler, false);
+	return true;
+	}
+else if(element.attachEvent) {
+	element.attachEvent('on' + eventType, handler);
+	return true;
+	}
+},
+
+//-------------------------------------------------
+cancelListener : function(element, eventType, handler) {
+if(element.removeEventListener) {
+	element.removeEventListener(eventType, handler, false);
+	return true;
+	}
+else if(element.detachEvent) {
+	element.detachEvent('on' + eventType, handler);
+	return true;
+	}
+},
+ 
 //-------------------------------------------
 mouseCallbacks : {
- /* queuedMouseOver : null,
-    queuedMouseOut : null,
-    doQueuedMouseOver : function () {
-    if (this.queuedMouseOver) {
-    }    
-    },
-    doQueuedMouseOut : function () {
-    if (this.queuedMouseOver) {
-    }    
-    },
- */
  dragElement : null,
  
  click : function(evt) {
@@ -133,31 +116,6 @@ mouseCallbacks : {
   	    }
 	}
  },
- 
-//-------------------------------------------------
-// cross-browser event handling with listeners (if available)
-setListener : function(element, eventType, handler) {
-if(element.addEventListener) {
-	element.addEventListener(eventType, handler, false);
-	return true;
-	}
-else if(element.attachEvent) {
-	element.attachEvent('on' + eventType, handler);
-	return true;
-	}
-},
-
-//-------------------------------------------------
-cancelListener : function(element, eventType, handler) {
-if(element.removeEventListener) {
-	element.removeEventListener(eventType, handler, false);
-	return true;
-	}
-else if(element.detachEvent) {
-	element.detachEvent('on' + eventType, handler);
-	return true;
-	}
-},
  
 //------------------------------------------------
 // doCallback 

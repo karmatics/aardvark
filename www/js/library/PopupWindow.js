@@ -1,4 +1,5 @@
 PopupWindow = {
+zIndex: 25000,
 
 constructor: function (title, name, isResizable, windowCallback) {
   this.title = title;
@@ -99,7 +100,7 @@ prototype : {
     var x = dims.scrollX + (dims.width-elem.offsetWidth)/2, 
         y = dims.scrollY + (dims.height-elem.offsetHeight)/2;
     var w=0, h=0;
-    if (0) { //this.name) {
+    if (this.name) {
       var lastPopupWindow = PopupWindow.displayedList.getLastAdded (this.name);
       if (lastPopupWindow) {
           pos = DomUtils.getPos (lastPopupWindow.element);

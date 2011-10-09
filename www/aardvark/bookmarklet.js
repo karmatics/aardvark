@@ -13,12 +13,11 @@ var aardvark = {
 isBookmarklet: true,
 resourcePrefix: "http://localhost/aardvark/",
 srcFiles: [
-  'CoffeeScript/build/aardvarkStrings.js',
-  'CoffeeScript/build/aardvarkUtils.js',
+  'aardvarkStrings.js',
+  'aardvarkUtils.js',
   'aardvarkDBox.js',
-  'CoffeeScript/build/aardvarkCommands.js',
-  //'aardvarkCommands1.js',
-  'CoffeeScript/build/aardvarkMain.js'
+  'aardvarkCommands.js',
+  'aardvarkMain.js'
   ],
 
 //------------------------------------------------
@@ -48,7 +47,6 @@ loadObject: function  (obj) {
     // add our custom commands
     // aardvark.addCommand ("examine", MyFunctions.browseElement);
     // add our custom commands
-    aardvark.addCommand ("make template", makeTemplate);
     }
   }
 };

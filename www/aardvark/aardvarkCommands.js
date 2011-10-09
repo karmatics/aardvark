@@ -2,7 +2,6 @@ aardvark.loadObject ({
 
 keyCommands : [],
 
-
 //------------------------------------------------------------
 loadCommands : function () {
 if (this.keyCommands.length > 0)
@@ -24,20 +23,26 @@ var keyCommands = [
 ["colorize", this.colorize],
 ["view source", this.viewSource],
 ["javascript", this.makeJavascript],
-["paste", this.paste],
+["paste", this.domPath],
 ["help", this.showMenu, true],
 ["xpath", this.getElementXPath],
+["simple path", this.getElementSimplePath],
 ["global", this.makeGlobalFromElement]
 ];
 
 for (var i=0; i<keyCommands.length; i++)
-  this.addCommand.apply (this, keyCommands[i]);
+  this.addCommandInternal(keyCommands[i]);
 },
 
+addCommandInternal : function (a) {
+  this.addCommand(a[0], a[1], a[2], a[3], a[4], true);
+},
+
+keyCommands : [],
 
 //-----------------------------------------------------
 addCommand : function (name, func,
-    noElementNeeded, mode, keystroke) {
+    noElementNeeded, mode, keystroke, suppressMessage) {
 if (this.isBookmarklet) {
   if (mode == "extension")
     return;
@@ -72,6 +77,18 @@ var command = {
     } 
 if (noElementNeeded)
   command.noElementNeeded = true; 
+  
+ 
+for (var i=0; i<this.keyCommands.length; i++) {
+  if (this.keyCommands[i].keystroke == keystroke) {
+    if (!suppressMessage)
+      this.showMessage ("<p style='color: #000; margin: 3px 0 0 0;'>command \"<b>" + this.keyCommands[i].name + "</b>\" replaced with \"<b>" + name + "</b>\"</p>");
+    this.keyCommands[i] = command;
+    return;
+    }    
+  } 
+if (!suppressMessage)
+  this.showMessage ("<p style='color: #000; margin: 3px 0 0 0;'>command \"<b>" + name + "</b>\" added</p>");
 this.keyCommands.push (command);
 },
 
@@ -796,6 +813,35 @@ dbox.innerContainer.innerHTML = "<pre wrap=\"virtual\" style=\"margin:3; width: 
 dbox.show ();
 },
 
+//------------------------------------------------------------
+getElementSimplePath: function(elem) {
+  if(window.SimplePath && window.Logger) {
+    var io = Logger.makeIoBox();
+    io.isPathBox = true;
+    io.value = Logger.formatJson(JSON.stringify(SimplePath.getPath(elem)));
+  }
+},
+
+pathFromEditor : function(which) {
+  var curr, ioBox = null;
+  var count = 0;
+  for (var i=1; i<1000; i++) {
+    if ((curr = window["io" + i]) != null) {
+      if(curr.isPathBox) {
+        count++;
+        if(count > 1)
+          return null;
+        ioBox = curr;
+        }
+    }
+   }
+  if (count == 1) {
+    return JSON.parse(ioBox.value);
+  }
+  return null;
+},
+
+
 //--------------------------------------------------------
 // make a global variable, available to javascript running inside the page
 // handy tool for javascript developers
@@ -831,10 +877,8 @@ else {
   if (removeId)
     s += "document.getElementById('" + elem.id + "').id = '';";
   
-  var dbox = new AardvarkDBox ("#feb", false, true, true);
-  dbox.innerContainer.innerHTML = "<p style='color: #000; margin: 3px 0 0 0;'>global variable \"<b>elem" + this.doc.aardvarkElemNum + "</b>\" created</p>";
-  dbox.show ();
-  setTimeout ("aardvark.killDbox(" + dbox.id + ")", 2000);
+  
+  this.showMessage ("<p style='color: #000; margin: 3px 0 0 0;'>global variable \"<b>elem" + this.doc.aardvarkElemNum + "</b>\" created</p>");
 
   var scriptElem=this.doc.createElement('script');
   scriptElem.type='text/javascript';
@@ -844,6 +888,13 @@ else {
   return true;
   }
 return false;
+},
+
+showMessage : function (s) {
+  var dbox = new AardvarkDBox ("#feb", false, true, true);
+  dbox.innerContainer.innerHTML = s;
+  dbox.show ();
+  setTimeout ("aardvark.killDbox(" + dbox.id + ")", 2000);
 },
 
 //--------------------------------------------------------

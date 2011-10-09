@@ -1,13 +1,13 @@
-var ImageLoader = {
+ImageLoader = {
 maxChecks: 1000,
 list: [],
 intervalHandle : null,
 
-loadImage : function (callback, url) {
+loadImage : function (url, callback) {
   var img = new Image ();
   img.src = url;
   if (img.width && img.height) {
-    callback (mg.width, img.height, url, 0);
+    callback (img.width, img.height, url, 0);
     }
   else {
     var obj = {image: img, url: url, callback: callback, checks: 1};

@@ -1,9 +1,11 @@
 var _misc = require('./utils/Misc');
 var _jsonP = require('./utils/JsonP');
+var _jsonPHandlers = require('./JsonPHandlers');
 var _http = require("http");
 var _nodeStatic = require('node-static');
 var _queryString = require('querystring');
 var _fileTools = require('./utils/FileTools');
+var _snippet = require('./utils/Snippet');
 
 var isRoot = function () {
   return (process.getuid)?(process.getuid()==0):true;
@@ -52,9 +54,6 @@ for (var i=0; i<sl.length; i++)  {
   var list = require('./scriptLists/' +  sl[i]);  
   for (var j in list.htmlScripts) {
     scripts.htmlScripts[j] = list.htmlScripts[j];
-  }
-  for (var j in list.jsonPScripts) {
-    scripts.jsonPScripts[j] = list.jsonPScripts[j];
   }
   for (var j in list.jsonGetScripts) {
     scripts.jsonGetScripts[j] = list.jsonGetScripts[j];
@@ -106,7 +105,16 @@ var dispatchRequest = function (q) {
   
   currQ = q;
   
-  console.log('path: [' + q.path + ']');
+  var write404 = function (err) {
+    if (err) {
+      q.response.writeHead(404, {
+          'Content-Type': 'text/html'
+        });
+      q.response.end("<html><body>404</body></html>");
+      console.log("404: " + q.path);
+      }
+  };
+  
   if ((script = scripts.htmlScripts[q.path]) != null) {  // "GET"
     q.write = function (text) {
       q.response.writeHead(200, {
@@ -117,10 +125,13 @@ var dispatchRequest = function (q) {
     script(q);
     console.log("html script: " + q.path);
   }
+  else if (q.path === 'snippetEditor') {
+    _snippet.getSnippetEditorFiles (q);
+  }
   else if (q.path === 'jsonP') {
-    var inputData = _jsonP.process(q);
+    var inputData = _jsonP.processRequest(q);
     if (inputData !== null) {
-      if (inputData.scriptName != null && (script = scripts.jsonPScripts[inputData.scriptName]) != null) {
+      if (inputData.handlerName != null && (script = _jsonPHandlers[inputData.handlerName]) != null) {
         script(q, inputData);
         }
       else {
@@ -142,18 +153,11 @@ var dispatchRequest = function (q) {
     console.log("proxy: " + q.path);
   }
   else if (fileServer) {
-    q.request.addListener('end', function () {
-        fileServer.serve(q.request, q.response);
-        console.log("file server: " + q.path);
-      });
+     fileServer.serve(q.request, q.response, write404);
+     console.log("file server: " + q.path);
   }
   else {
-    q.response.writeHead(404, {
-        'Content-Type': 'text/html'
-      });
-    q.response.end("<html><body>404</body></html>");
-    console.log("404: " + q.path);
-
+    write404(true);
   }
 };
 
