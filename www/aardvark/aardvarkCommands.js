@@ -11,24 +11,24 @@ if (this.keyCommands.length > 0)
 // 2: no element needed (null for element commands)
 // 3: "extension" of ext only, "bookmarklet" for bm only, null for both
 var keyCommands = [
-["wider", this.wider],
-["narrower", this.narrower],
-["undo", this.undo, true],
-["quit", this.quit, true],
-["remove", this.removeElement],
-["kill", this.rip, null, "extension"],
-["isolate", this.isolateElement],
-["black on white", this.blackOnWhite],
-["deWidthify", this.deWidthify],
-["colorize", this.colorize],
-["view source", this.viewSource],
-["javascript", this.makeJavascript],
-["paste", this.domPath],
-["help", this.showMenu, true],
-["xpath", this.getElementXPath],
-["simple path", this.getElementSimplePath],
-["global", this.makeGlobalFromElement]
-];
+  ["wider", this.wider],
+  ["narrower", this.narrower],
+  ["undo", this.undo, true],
+  ["quit", this.quit, true],
+  ["remove", this.removeElement],
+  ["kill", this.rip, null, "extension"],
+  ["isolate", this.isolateElement],
+  ["black on white", this.blackOnWhite],
+  ["deWidthify", this.deWidthify],
+  ["colorize", this.colorize],
+  ["view source", this.viewSource],
+  ["javascript", this.makeJavascript],
+  ["paste", this.domPath],
+  ["help", this.showMenu, true],
+  ["xpath", this.getElementXPath],
+  ["element path", this.getElementPath],
+  ["global", this.makeGlobalFromElement]
+  ];
 
 for (var i=0; i<keyCommands.length; i++)
   this.addCommandInternal(keyCommands[i]);
@@ -77,7 +77,6 @@ var command = {
     } 
 if (noElementNeeded)
   command.noElementNeeded = true; 
-  
  
 for (var i=0; i<this.keyCommands.length; i++) {
   if (this.keyCommands[i].keystroke == keystroke) {
@@ -184,7 +183,6 @@ return true;
 },
 
 //------------------------------------------------------------
-
 resume : function () {
 if (this.doc.all) {
   this.doc.attachEvent ("onmouseover", this.mouseOver);
@@ -814,33 +812,11 @@ dbox.show ();
 },
 
 //------------------------------------------------------------
-getElementSimplePath: function(elem) {
-  if(window.SimplePath && window.Logger) {
-    var io = Logger.makeIoBox();
-    io.isPathBox = true;
-    io.value = Logger.formatJson(JSON.stringify(SimplePath.getPath(elem)));
+getElementPath: function(elem) {
+  if(window.SimplePath) {
+    SimplePath.openEditor(elem);
   }
 },
-
-pathFromEditor : function(which) {
-  var curr, ioBox = null;
-  var count = 0;
-  for (var i=1; i<1000; i++) {
-    if ((curr = window["io" + i]) != null) {
-      if(curr.isPathBox) {
-        count++;
-        if(count > 1)
-          return null;
-        ioBox = curr;
-        }
-    }
-   }
-  if (count == 1) {
-    return JSON.parse(ioBox.value);
-  }
-  return null;
-},
-
 
 //--------------------------------------------------------
 // make a global variable, available to javascript running inside the page
@@ -890,6 +866,7 @@ else {
 return false;
 },
 
+//--------------------------------------------------------
 showMessage : function (s) {
   var dbox = new AardvarkDBox ("#feb", false, true, true);
   dbox.innerContainer.innerHTML = s;
@@ -932,4 +909,3 @@ addChildren : function (elem, t, depth) {
   }
 
 });
-

@@ -67,7 +67,7 @@ JsSnippetEditor = {
     this.window.contentElem.style.backgroundColor = "#888";
     this.window.contentElem.style.borderColor = "#444";
     this.nameOfItem = "";
-    
+
     this.nameSelectElem.onchange = function() { self.nameSelectHandler();};
     runButton.onclick = function(type, elem, event) {self.runButtonHandler();};
     saveButton.onclick = function() {self.saveButtonHandler ();};
@@ -86,12 +86,13 @@ JsSnippetEditor = {
         };
         var g = JsSnippetEditor.globals;
         with (DomGenerator) {
-          try { 
+        //  try { 
             var x = true;
-          }
-          catch (e) {
-            JsSnippetEditor.processException(e);        
-          }
+          //}
+          //catch(ex) {
+           // log(ex);
+            // JsSnippetEditor.processException(ex);        
+          //}
         }
       };
     var a = f.toString().split("var x = true;");
@@ -100,17 +101,16 @@ JsSnippetEditor = {
       part2: a[1],
       offset: a[0].split('\n').length
     };
-    },
+  },
 
 onerrorFunction : function (error, file, lineNo) {
-    //if (file == 'document.location.href') {
+    // if (file == 'document.location.href') {
       Logger.write("error, line " + (lineNo-JsSnippetEditor.fs.offset) + "\n" + error);
-      //}
+    // }
  },
 
-
  processException : function (e) {
-    if (Logger != null) {
+    /*if (window.Logger != null) {
       if (e.stack) {
         var a = e.stack.split('\n');
         e.stack = [];
@@ -119,9 +119,10 @@ onerrorFunction : function (error, file, lineNo) {
             break;
           e.stack.push(a[i]);
         }
-      }
-      Logger.write (e);
-    }
+      }*/
+      Logger.write ("-x-hi");
+      Logger.write(e);
+    //}
  }, 
  
  prototype : {
@@ -354,13 +355,14 @@ onerrorFunction : function (error, file, lineNo) {
   },
   
   evaluateCode : function(code) {
-    var s = document.createElement('script');
-    s.appendChild(document.createTextNode(
-          '(' + 
+    var s = document.createElement('script'),
+        str = '(' + 
           JsSnippetEditor.fs.part1 + 
           code +
           JsSnippetEditor.fs.part2 + 
-          ')();'          
+          ')();';
+    s.appendChild(document.createTextNode(
+          str
           ));
     window.onerror = JsSnippetEditor.onerrorFunction;
     document.body.appendChild(s);
