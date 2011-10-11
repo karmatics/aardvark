@@ -5,13 +5,7 @@ module.exports = {
   usernameList: {
     rob: 'echidna',
     mark: 'wallaby',
-    denise: 'platypus',
-    jack: 'kangaroo',
-    jake: 'koala',
-    ron: 'dingo',
-    cheryl: 'wombat',
-    paul: 'bandicoot',
-    other: 'sugarglider'
+    mike: 'kangaroo'
   },
 
   getFilename: function (name) {
