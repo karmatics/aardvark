@@ -1,1 +1,1 @@
-{"js":"var s = document.createElement('script');\ns.appendChild(document.createTextNode(io1.value));\ndocument.body.appendChild(s);","name":"test eval","num":29}
+{"js":"var s = document.createElement('script');\ns.appendChild(document.createTextNode(io1.value));\ndocument.body.appendChild(s);\n\n\n\n\n\n\n\n\n\n\n\n\n\n","name":"test eval","num":29}

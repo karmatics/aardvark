@@ -1,1 +1,0 @@
-{"js":"var e = document.getElementById(\"eventcount_36791712\");\nif (e.innerText.indexOf('11') != -1)\n  alert('we've got 11!');\n\nsetTimeout(function() {\n  window.location.reload()\n  }, \n90000);","name":"test node scrape","num":38}

@@ -1,1 +1,0 @@
-{"js":"var a2 = [];\n\nfunction processString (s) {\n  a2.push(s);\n}\n\nvar a = io1.value.split('\\n');\nfor (var i=0; i<a.length; i++) {\n  if (a[i].indexOf('B:') == 0) {\n    processString (a[i].substring(2))\n  }\n}\n\nlog(a2);\n","name":"count evie things","num":37}

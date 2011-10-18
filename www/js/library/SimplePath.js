@@ -1,24 +1,28 @@
 SimplePath = {
   
   getElementsByPathSelector: function (parent, pathSelector) {
-   var out = [];
-
-   var e, count = 1, cn = parent.childNodes;
+    var out = [];
+    
+    var e, count = 1, cn = parent.childNodes;
     for (var i=0; i<cn.length; i++) {
       if (pathSelector.type == cn[i].tagName) {
         if (!pathSelector.num ||
-            count == pathSelector.num) {
+          count == pathSelector.num) {
           out.push(cn[i]);
         }
         count++;
       }
-   }
-   return out;
+    }
+    return out;
   },
   
   combinePaths: function (path1, path2) {
+    if (!path1)
+      return path2;
+    if (!path2)
+      return path2;
     var len1 = path1.length, len2 = path2.length;
-
+    
     if (len1 < len2) {
       var t = len2;
       len2 = len1;
@@ -27,74 +31,72 @@ SimplePath = {
       path2 = path1;
       path1 = t;
     }; 
-   for (var i=0; i<len2; i++) {
-    if(path1[i].type != path2[i].type)
-      return null;
-    if(path1[i].num != path2[i].num)
-      path1[i].num = 0;
-   }
-  if (len1 != len2) {
-    path1[len2-1].doCallback = true;
-    //Logger.write("asdfasdf");
-    //Logger.write(path1[len2-1]);
+    for (var i=0; i<len2; i++) {
+      if(path1[i].type != path2[i].type)
+        return null;
+      if(path1[i].num != path2[i].num)
+        path1[i].num = 0;
     }
-  return path1;
+    if (len1 != len2) {
+      path1[len2-1].doCallback = true;
+    }
+    return path1;
   },
   
   getElementsByPath : function(path, parent, cb) {
-   if (parent == null)
-    parent = document.getElementsByTagName('html')[0];
-  
-   var depth = 0;
-   var maxDepth = path.length-1;
-  
-   function process (p, path, d) {
-     var a = SimplePath.getElementsByPathSelector(p, path[d]);
-     if (d == maxDepth) {
-       for (var i=0; i<a.length; i++)
-         cb (a[i], d);
-     }
-     else {
-       for (var i=0; i<a.length; i++) {
-         if (path[d].doCallback)
+    if (parent == null)
+      parent = document.getElementsByTagName('html')[0];
+    
+    var depth = 0;
+    var maxDepth = path.length-1;
+    
+    function process (p, path, d) {
+      var a = SimplePath.getElementsByPathSelector(p, path[d]);
+      if (d == maxDepth) {
+        for (var i=0; i<a.length; i++)
           cb (a[i], d);
-         process(a[i], path, d+1);
-         }
-     }
-   }
-   process (parent, path, 0)
+      }
+      else {
+        for (var i=0; i<a.length; i++) {
+          if (path[d].doCallback)
+            cb (a[i], d);
+          process(a[i], path, d+1);
+        }
+      }
+    }
+    process (parent, path, 0)
   },
   
   getPath : function (elem, ancestor) {
-   if(ancestor == null)
-    ancestor = document.getElementsByTagName('html')[0];
-   var path=[];
-   while(elem.parentNode) {
-    if(elem === ancestor)
-      return path.reverse();
-    var item = {type: elem.tagName, num: this.whichChildOfType(elem)};
-    if (elem.className && elem.className != '')
-      item.class = elem.className;
-    if (elem.id && elem.id != '')
-      item.id = elem.id;
-    path.push(item)
-    elem=elem.parentNode;
-   }
-  return path.reverse();
+    if(ancestor == null)
+      ancestor = document.getElementsByTagName('html')[0];
+    var path=[];
+    while(elem.parentNode) {
+      if(elem === ancestor)
+        return path.reverse();
+      var item = {type: elem.tagName, num: this.whichChildOfType(elem)};
+      if (elem.className && elem.className != '')
+        item.class = elem.className;
+      if (elem.id && elem.id != '')
+        item.id = elem.id;
+      path.push(item)
+      elem=elem.parentNode;
+    }
+    return path.reverse();
   },
   
   whichChildOfType : function (elem) {
     var parent = elem.parentNode;
     if (parent) {
-     count = 1;
-     for (var i=0; i<parent.childNodes.length; i++) {
-      if (parent.childNodes[i] === elem)
-       return count;
-      if (parent.childNodes[i].tagName == elem.tagName)
-        count++;
+      count = 1;
+      for (var i=0; i<parent.childNodes.length; i++) {
+        if (parent.childNodes[i] === elem)
+          return count;
+        if (parent.childNodes[i].tagName == elem.tagName)
+          count++;
       }
-     }
-   return -1; 
+    }
+    return -1; 
   },
   
   pathFromEditor : function(which) {
@@ -115,7 +117,7 @@ SimplePath = {
           }
         }
       }
-     }
+    }
     if (count == 1) {
       return JSON.parse(ioBox.value);
     }
@@ -125,8 +127,8 @@ SimplePath = {
   getColor : function (id) {
     if(this.colors[id] == undefined)
       this.colors[id] = Math.round(Math.random()*255) + ',' +
-        Math.round(Math.random()*255) + ',' + 
-        Math.round(Math.random()*255);
+    Math.round(Math.random()*255) + ',' + 
+    Math.round(Math.random()*255);
     return this.colors[id];
   },  
   
@@ -141,7 +143,7 @@ SimplePath = {
   clearColors : function () {
     this.colors = {};
   },
-
+  
   clearHilited : function () {
     for (var i=0; i<this.hilitedElements.length; i++) {
       var s = this.hilitedElements[i].style;
@@ -150,7 +152,7 @@ SimplePath = {
     }
     this.hilitedElements = [];
   },
-
+  
   colors : {},
   hilitedElements : [],
   
