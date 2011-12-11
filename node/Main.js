@@ -17,7 +17,6 @@ var serverSettings = null;
 
 var scripts = {
   jsonGetScripts : {},
-  jsonPScripts : {},
   htmlScripts: {}
   };
 
@@ -128,17 +127,11 @@ var dispatchRequest = function (q) {
   else if (q.path === 'snippetEditor') {
     _snippet.getSnippetEditorFiles (q);
   }
-  else if (q.path === 'jsonP') {
+  else if ((script = _jsonPHandlers[q.path]) != null) {
     var inputData = _jsonP.processRequest(q);
-    if (inputData !== null) {
-      if (inputData.handlerName != null && (script = _jsonPHandlers[inputData.handlerName]) != null) {
-        script(q, inputData);
-        }
-      else {
-        q.write({error: 'script not found'});
-        }
-      }
-    }
+    if (inputData)
+      script(q, inputData);
+  }
   else if ((script = scripts.jsonGetScripts[q.path]) != null) {
     q.write = function (o) {
       q.response.writeHead(200, {

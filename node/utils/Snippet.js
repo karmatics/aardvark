@@ -1,9 +1,7 @@
 var _fs = require('fs');
 var _fileTools = require("./FileTools");
-
 var _snippetsPath = '../remotestoredata/';
 var _clientCodePath = '../www/js/library/';
-
 
 module.exports = {
     getSnippetEditorFiles : function (q) {
@@ -11,6 +9,7 @@ module.exports = {
         "PopupWindowCss",
         "DomGenerator",
         "Cookie",
+        "Crockford_Json",
         "DomUtils",
         "Callbacks",
         "NamedItemList",
@@ -52,9 +51,9 @@ module.exports = {
           group:q.params.group,
           url: q.params.url
           };
-                
+               
         var out = contents.join('') + 
-            '(function (){new JsSnippetEditor(' + 
+            '(function (){JsSnippetEditor.open(' + 
             JSON.stringify(snippetSettings) + 
             ');})();';
         q.response.end(out);
@@ -71,7 +70,6 @@ module.exports = {
           else {
             try {
               var settings = JSON.parse(fileData);
-              
             } catch (e) {
               cb(null);
               return;
@@ -83,10 +81,13 @@ module.exports = {
     
     //-----------------------------------------
     getSnippets: function (q, data) {
+      // console.log('getSnippets' + JSON.stringify(data) );
+
       var files;
       var latest = 0;
       var meta = null;
-      var filesPath = _snippetsPath + data.user + '/' + data.snippetSet;
+      var filesPath = _snippetsPath + data.user + '/' + data.group;
+      // console.log(filesPath);
       this.getMetaData(data.user, function (metaData){
         if (metaData) {
            if (data.password === metaData.readPw ||
@@ -152,7 +153,7 @@ module.exports = {
     //-----------------------------------------
     saveSnippet: function (q, data) {
       var max = 0;
-      var filesPath = _snippetsPath + data.user + '/' + data.snippetSet;
+      var filesPath = _snippetsPath + data.user + '/' + data.group;
       this.getMetaData(data.user, function (metaData){
         if (metaData) {
            if (data.password === metaData.writePw) {

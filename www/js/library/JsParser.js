@@ -1,25 +1,96 @@
+
+/**
+ * @fileoverview
+ * Provides a heuristic to guess whether a forward slash ('/') that does not
+ * start a comment starts a regular expression or a division operator.
+ *
+ * @author Mike Samuel <mikesamuel@gmail.com>
+ */
+
+var REGEXP_PRECEDER_TOKEN_RE = new RegExp(
+  "^(?:"  // Match the whole tokens below
+    + "break"
+    + "|case"
+    + "|continue"
+    + "|delete"
+    + "|do"
+    + "|else"
+    + "|finally"
+    + "|in"
+    + "|instanceof"
+    + "|return"
+    + "|throw"
+    + "|try"
+    + "|typeof"
+    + "|void"
+    // Binary operators which cannot be followed by a division operator.
+    + "|[+]"  // Match + but not ++.  += is handled below.
+    + "|-"    // Match - but not --.  -= is handled below.
+    + "|[.]"    // Match . but not a number with a trailing decimal.
+    + "|[/]"  // Match /, but not a regexp.  /= is handled below.
+    + "|,"    // Second binary operand cannot start a division.
+    + "|[*]"  // Ditto binary operand.
+  + ")$"
+  // Or match a token that ends with one of the characters below to match
+  // a variety of punctuation tokens.
+  // Some of the single char tokens could go above, but putting them below
+  // allows closure-compiler's regex optimizer to do a better job.
+  // The right column explains why the terminal character to the left can only
+  // precede a regexp.
+  + "|["
+    + "!"  // !           prefix operator operand cannot start with a division
+    + "%"  // %           second binary operand cannot start with a division
+    + "&"  // &, &&       ditto binary operand
+    + "("  // (           expression cannot start with a division
+    + ":"  // :           property value, labelled statement, and operand of ?:
+           //             cannot start with a division
+    + ";"  // ;           statement & for condition cannot start with division
+    + "<"  // <, <<, <<   ditto binary operand
+    // !=, !==, %=, &&=, &=, *=, +=, -=, /=, <<=, <=, =, ==, ===, >=, >>=, >>>=,
+    // ^=, |=, ||=
+    // All are binary operands (assignment ops or comparisons) whose right
+    // operand cannot start with a division operator
+    + "="
+    + ">"  // >, >>, >>>  ditto binary operand
+    + "?"  // ?           expression in ?: cannot start with a division operator
+    + "["  // [           first array value & key expression cannot start with
+           //             a division
+    + "^"  // ^           ditto binary operand
+    + "{"  // {           statement in block and object property key cannot start
+           //             with a division
+    + "|"  // |, ||       ditto binary operand
+    + "}"  // }           PROBLEMATIC: could be an object literal divided or
+           //             a block.  More likely to be start of a statement after
+           //             a block which cannot start with a /.
+    + "~"  // ~           ditto binary operand
+  + "]$"
+  // The exclusion of ++ and -- from the above is also problematic.
+  // Both are prefix and postfix operators.
+  // Given that there is rarely a good reason to increment a regular expression
+  // and good reason to have a post-increment operator as the left operand of
+  // a division (x++ / y) this pattern treats ++ and -- as division preceders.
+  );
+
+
+/**
+ * True iff a slash after the given run of non-whitespace tokens
+ * starts a regular expression instead of a div operator : (/ or /=).
+ * <p>
+ * This fails on some valid but nonsensical JavaScript programs like
+ * {@code x = ++/foo/i} which is quite different than
+ * {@code x++/foo/i}, but is not known to fail on any known useful
+ * programs.  It is based on the draft
+ * <a href="http://www.mozilla.org/js/language/js20-2000-07/rationale/syntax.html">JavaScript 2.0
+ * lexical grammar</a> and requires one token of lookbehind.
+ *
+ * @param {string} preceder The non-whitespace, non comment token preceding
+ *    the slash.
+ */
+function guessNextIsRegexp(preceder) {
+  return REGEXP_PRECEDER_TOKEN_RE.test(preceder);
+}
+
 var JsParser = {
-  
-  //----------------------------------------------------------
-  getIndent : function (string) {
-    var indent = 0;
-    var len = string.length;
-    var i = 0;
-    for (i=0; i<len; i++) {
-      var ch = string.charAt(i);
-      if (ch == ' ')
-        indent++;
-      else if (ch == '\t') {
-        if (i%2 == 0)
-          indent += 2;
-        else
-          indent ++;
-      }
-      else
-        break;
-    }
-    return {indent: indent, string: string.substring(i)};
-  },
   
   //----------------------------------------------------------
   // given a long string and an array of short strings,
@@ -29,17 +100,17 @@ var JsParser = {
   findFirstFromSetOfStrings : function (searchStrings,
     string, startIndex, endIndex) {
     var nSS = searchStrings.length;
-    var min = 10000, best = -1;
+    var min = Infinity, best = -1;
     
     for (var i=0; i<nSS; i++) {
       var ind = string.indexOf(searchStrings[i], startIndex);
-      if (ind != -1 && ind < min) {
+      if (ind != -1 && ind < min && ind < endIndex) {
         min = ind;
         best = i;
       }
     }
-    return ((best == -1 || (endIndex && min >= endIndex)) ?
-      null : {stringNo: best, index: min});
+    return (best == -1) ?
+      null : {stringNo: best, index: min};
   },
   
   //----------------------------------------------------------
@@ -47,7 +118,19 @@ var JsParser = {
   // single or double -- the start and end character index in the 
   // string, the endComment string, and the string itself minus the 
   // comment string)
-  findQuotesAndComments : function (string, startPoint, endPoint) {
+  findQuotesAndComments : function (string) {
+      function stripWhitespace (string) {
+        var len = string.length;
+        var i = 0;
+        for (i=0; i<len; i++) {
+          var ch = string.charAt(i);
+          if (ch != ' ' && ch != '\t')
+          break;
+        }
+        return string.substring(i);
+      };
+    string = stripWhitespace(string);
+    var startPoint = 0, endPoint = string.length;
     var state = 0, quotes= [], r;
     var searchStrings = [
       ["\"", "'", "//", "\\\"", "\\\'"], // 0: non quote
@@ -77,13 +160,12 @@ var JsParser = {
           state = 1;
         }
         else if (r.stringNo == 2) {
-          if (currQuote)
-            Logger.write ("error: " + string);       
-          return {
+          var out = {
             endComment: string.substring (r.index),
             string: string.substring(0, r.index),
             quotes: quotes
           };
+          return out;
         }
         break;
         case 1:
@@ -108,15 +190,20 @@ var JsParser = {
   
   //----------------------------------------------------------
   // a partial line, which is known to be js code,
-  // neither comments nor quotes (so things like braces and parent are
+  // neither comments nor quotes (so things like braces and parens are
   // actually braces and parens, not just something in a comment or quote)
-  processCodeSpanForDelims : function (codeSpan, lineData, delimTracker) {
-    var string = lineData.string;
+  processCodeSpanForDelims : function (codeSpan, string, delimTracker) {
     var startPoint = codeSpan.start, end = codeSpan.end, r;
     
+    if(this.debug)
+      Logger.write(codeSpan.spanNo + ": " + "\"" + 
+          string.substring(codeSpan.start, codeSpan.end) + "\"");
+
     while ((r = this.findFirstFromSetOfStrings (delimTracker.delims,
           string, startPoint, end)) != null) {
       if (r.stringNo%2==0) {
+        if(this.debug)
+          Logger.write(delimTracker.delims[r.stringNo] + " (even)");
         var currDelim = {
           type: r.stringNo,
           startIndex: r.index,
@@ -125,12 +212,14 @@ var JsParser = {
           parent: (delimTracker.stackLen>0) ?
           delimTracker.stack[delimTracker.stackLen-1] :
           delimTracker
-        }
+        };
         currDelim.parent.children.push (currDelim);
         delimTracker.stack[delimTracker.stackLen] = currDelim;
         delimTracker.stackLen++;
       }
       else {
+        if (this.debug)
+          Logger.write(delimTracker.delims[r.stringNo] + " (odd)");
         if (delimTracker.stackLen>0) {
           delimTracker.stackLen--; 
           if (delimTracker.stack[delimTracker.stackLen].type != r.stringNo-1) {
@@ -153,32 +242,40 @@ var JsParser = {
   
   //----------------------------------------------------------
   processLine : function (inString, delimTracker, lineNo) {
-    var indent = this.getIndent(inString), codeSpan;
-    var newIndent = delimTracker.stackLen;
-    var lineData = this.findQuotesAndComments (indent.string);
-    lineData.newIndent = newIndent;
+    if(this.debug) {
+      Logger.write("--------- " + lineNo + " ----------");
+    }
+    var codeSpan;
+    var indent = delimTracker.stackLen;
+    var lineData = this.findQuotesAndComments (inString);
+    if(this.debug) {
+      for (var i=0; i<lineData.quotes.length; i++) {
+        var item = lineData.quotes[i];
+        Logger.write(item.type + ": [" + lineData.string.substring(item.start, item.end) + "]");
+      }
+    }
+
+    lineData.indent = indent;
     var q = lineData.quotes, index = 0, codeSpans = [];
     for (var j=0; j<q.length; j++) {
       codeSpan = {lineNo: lineNo, spanNo: j,
-        start: index, end: q[j].start};
-      this.processCodeSpanForDelims (codeSpan, lineData, delimTracker);
+        start: index, end: q[j].start, which: 1};
+      this.processCodeSpanForDelims (codeSpan, lineData.string, delimTracker);
       codeSpans.push (codeSpan);
       index = q[j].end;
     }
-    codeSpan = {lineNo: lineNo, spanNo: q.length, 
-      start: index, end: null};
-    this.processCodeSpanForDelims (codeSpan, lineData, delimTracker);
+    codeSpan = {lineNo: lineNo, spanNo: q.length,
+      start: index, end: lineData.string.length, which: 2};
+    this.processCodeSpanForDelims (codeSpan, lineData.string, delimTracker);
     codeSpans.push (codeSpan);
     lineData.codeSpans = codeSpans;
-    lineData.indent = indent.indent;
-    return lineData;	
+    return lineData;
   },
   
   //----------------------------------------------------------
-  processJs : function (text) {
-    var spaces = ' ', s = '';
-    for (i=0; i<200; i++)
-      spaces += ' ';
+  processJs : function (lines, debug) {
+    if (debug)
+      this.debug = true;
     JsParser.lines = [];
     JsParser.delimTracker = {
       stack: [],
@@ -187,28 +284,19 @@ var JsParser = {
       children: [], // root delimeter objects
       delims: ["{", "}", "[", "]", "(", ")"],
       count:  [0, 0, 0, 0, 0, 0]};	
-    var a = text.split("\n");
-    for (var i=0; i<a.length; i++) {
-      var lineData = JsParser.processLine (a[i],
+    for (var i=0; i<lines.length; i++) {
+      var lineData = JsParser.processLine (lines[i],
         JsParser.delimTracker, i);
       JsParser.lines.push (lineData);
     }
-    
     delete JsParser.delimTracker.stack;
     delete JsParser.delimTracker.stackLen;
-    var currIndent = 0;
     for (var i=0; i<this.lines.length; i++) {
       var str = this.lines[i].string;
-      if (str.length == 0) {
-        if (this.lines[i].endComment)
-          s += spaces.substring(0, currIndent*2) + this.lines[i].endComment;
-        s += '\n';
-      }
-      else {
+      if (str.length > 0) {
         var first = str[0];
-        // todo: loop
         if (first==')' || first==']' ||  first=='}') {
-          this.lines[i].newIndent--;
+          this.lines[i].indent--;
         }
         else if (i>0) {
           var prevString = this.lines[i-1].string;
@@ -218,86 +306,17 @@ var JsParser = {
           for (var j=0; j<keys.length; j++) {
             if (prevString.indexOf(keys[j]) == 0 && 
               alnum.indexOf(prevString[keys[j].length]) == -1 && 
-              this.lines[i-1].newIndent == this.lines[i].newIndent
+              this.lines[i-1].indent == this.lines[i].indent
             )
-            this.lines[i].newIndent++;
+            this.lines[i].indent++;
             found = true;
           }
         }
-        s += spaces.substring(0, currIndent*2) + str;
-        if (this.lines[i].endComment)
-          s += ' ' + this.lines[i].endComment;
-        s += '\n';
       }
-      //this.lines[i].newIndent = currIndent;
     }
-    // Logger.write (this.lines)
-    // Logger.write(JsParser.delimTracker, 0,0, 100);
-    /*var s = "";
-    var cc = JsParser.delimTracker.children[0].children;
-    for (var i=0; i<cc.length; i++) {
-      var cb = cc[i];
-      Logger.write (i + " sln:" + cb.startLineNo + ", si:" + cb.startIndex + ", eln:" +
-        cb.endLineNo + ", ei:" + cb.endIndex);
-    }*/
-    //		Logger.write (JsParser.delimTracker.stack.length);
-    return s; //JsParser.show ();
+    this.debug = false;
   },
   
-  /*
-  //----------------------------------------------------------
-  show : function () {
-    var s = "";
-    for (var i=0; i<this.lines.length; i++) {
-      line = this.lines[i];
-      //for (x=0; x<line.indent; x++)
-      //		s += "-"
-      for (var j=0; j<line.codeSpans.length; j++) {
-        var c = line.codeSpans[j];
-        s += this.cleanSubstring (line.string, c.start, c.end);
-        var q = line.quotes[j];
-        if (q)
-          s += "<b style='color:#a00'>" +
-        this.cleanSubstring (line.string, q.start, q.end) + "</b>";
-      }
-      if (line.endComment)
-        s += "<b style='color:#080'>" +
-      this.cleanSubstring (line.endComment, 0) + "</b>";
-      s += "<br>";
-    }
-    return s;
-  },
-  
-  //----------------------------------------------------------
-  buildString : function () {
-    var s = "";
-    for (var i=0; i<this.lines.length; i++) {
-      line = this.lines[i];
-      for (var j=0; j<line.codeSpans.length; j++) {
-        var c = line.codeSpans[j];
-        s += this.cleanSubstring (line.string, c.start, c.end);
-        var q = line.quotes[j];
-        if (q)
-          s += this.cleanSubstring (line.string, q.start, q.end);
-      }
-      if (line.endComment)
-        s += this.cleanSubstring (line.endComment, 0);
-      s += "\n";
-    }
-    return s;
-  },
-  
-  //----------------------------------------------------------
-  cleanSubstring : function (string, start, end) {
-    var s;
-    if (end == null)
-      s = string.substring(start)
-    else
-      s = string.substring(start, end);
-    return s.replace(new RegExp("<", "g"), '&lt;').
-    replace(new RegExp(">", "g"), '&gt;');
-  },
-  */
   //----------------------------------------------------------
   isAlnum : function (s) {
     var len = s.length;
@@ -327,6 +346,7 @@ var JsParser = {
     return false;
   },
   
+  //----------------------------------------------------------
   parseSnippet : function (val) {
     var indentStr = '                             ';
     function makeIndent(n) {
@@ -350,7 +370,7 @@ var JsParser = {
             name += c;
           } 
         }
-        if (name.length>0) {
+        if (name.length > 0) {
           currHereDoc = {name: name, lines: []};
           hereDocs.push(currHereDoc);
         } else {
@@ -358,7 +378,7 @@ var JsParser = {
         }
         return true;
       }
-      return false; 
+      return false;
     };
     
     var a = val.split('\n');
@@ -376,13 +396,13 @@ var JsParser = {
       }
       else {
         a.splice(0, i);
-        JsParser.processJs(a.join('\n'));
+        JsParser.processJs(a);
         for (var i=0; i<JsParser.lines.length; i++) {
           var line = JsParser.lines[i];
           if (line.endComment)
-            evString += makeIndent(line.newIndent) + line.string + line.endComment + '\n';
+            evString += makeIndent(line.indent) + line.string + line.endComment + '\n';
           else
-            evString += makeIndent(line.newIndent) + line.string + '\n';
+            evString += makeIndent(line.indent) + line.string + '\n';
         }
         break;
       }
@@ -403,6 +423,24 @@ var JsParser = {
           outStringArray.push(hd.lines[j]);
       }
       outStringArray.push('-----');
+    }
+    outStringArray.push(snippet.evString);
+    return outStringArray.join('\n');
+  },
+  
+  //------------------------------------------
+  getLineOffsets : function (snippet, lineNo) {
+    var count = 0;
+    for (var i=0; i<snippet.files.length; i++)
+      count += 1 + snippet.files[i].length;
+    if (snippet.hereDocs.length > 0) {
+      for (var i=0; i<snippet.hereDocs.length; i++) {
+        var hd = snippet.hereDocs[i];
+        count += 5 + hd.name.length;
+        for (var j=0; j<hd.lines.length; j++)
+          count += hd.lines[j].length + 1;
+      }
+      count += 6;
     }
     outStringArray.push(snippet.evString);
     return outStringArray.join('\n');

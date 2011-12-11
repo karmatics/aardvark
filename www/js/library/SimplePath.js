@@ -46,11 +46,15 @@ SimplePath = {
   getElementsByPath : function(path, parent, cb) {
     if (parent == null)
       parent = document.getElementsByTagName('html')[0];
-    
+    if (typeof(path) == 'string')
+      path = this.pathFromString(path);
+    Logger.write(path);
     var depth = 0;
     var maxDepth = path.length-1;
     
     function process (p, path, d) {
+      Logger.write (p.tagName)
+          
       var a = SimplePath.getElementsByPathSelector(p, path[d]);
       if (d == maxDepth) {
         for (var i=0; i<a.length; i++)
@@ -67,7 +71,7 @@ SimplePath = {
     process (parent, path, 0)
   },
   
-  getPath : function (elem, ancestor) {
+  getPathObs: function (elem, ancestor) {
     if(ancestor == null)
       ancestor = document.getElementsByTagName('html')[0];
     var path=[];
@@ -75,14 +79,41 @@ SimplePath = {
       if(elem === ancestor)
         return path.reverse();
       var item = {type: elem.tagName, num: this.whichChildOfType(elem)};
-      if (elem.className && elem.className != '')
-        item.class = elem.className;
+      //if (elem.className && elem.className != '')
+      //  item.class = elem.className;
       if (elem.id && elem.id != '')
         item.id = elem.id;
       path.push(item)
-      elem=elem.parentNode;
+      elem = elem.parentNode;
     }
     return path.reverse();
+  },
+  
+  pathStringFromElement : function (elem, ancestor) {
+    if(ancestor == null)
+      ancestor = document.getElementsByTagName('html')[0];
+    var path=[];
+    while(elem.parentNode) {
+      if(elem === ancestor)
+        return path.reverse().join('/');
+      var item = elem.tagName.toLowerCase() + ':' + this.whichChildOfType(elem);
+      path.push(item)
+      elem = elem.parentNode;
+    }
+    return path.reverse().join('/');
+  },
+  
+  pathFromString : function (str) {
+    var pa = str.split('/');
+    var path = [], o;
+    for (var i=0; i<pa.length; i++) {
+      var a = pa[i].split(':');
+      path.push({
+        type: a[0],
+        num: (a.length > 1)?parseInt(a[1]):null
+        });
+    }
+    return path;
   },
   
   whichChildOfType : function (elem) {
@@ -131,19 +162,18 @@ SimplePath = {
     Math.round(Math.random()*255);
     return this.colors[id];
   },  
-  
+
   hiliteElem : function (elem, id) {
-    
     var color = this.getColor(id);
     elem.style.border = '2px dashed rgb(' + color + ')';
     elem.style.background = 'rgba(' + color + ',.2)';
     this.hilitedElements.push(elem);
   },
-  
+
   clearColors : function () {
     this.colors = {};
   },
-  
+
   clearHilited : function () {
     for (var i=0; i<this.hilitedElements.length; i++) {
       var s = this.hilitedElements[i].style;
@@ -152,14 +182,19 @@ SimplePath = {
     }
     this.hilitedElements = [];
   },
-  
+
   colors : {},
   hilitedElements : [],
-  
+
   openEditor : function (elem) {
-    var io = Logger.makeIoBox();
-    io.isPathBox = true;
-    io.value = Logger.formatJson(JSON.stringify(SimplePath.getPath(elem)));
+    var jse = window.JsSnippetEditor;
+    if (jse != null) {      
+      var f = jse.getLastFocused();
+      if (f)
+        f.addHereDocVar(
+          "g.path[*]",
+          [SimplePath.pathStringFromElement(elem)]
+        );
+    }
   }
-  
 };

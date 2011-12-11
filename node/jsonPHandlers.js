@@ -21,13 +21,20 @@ module.exports = {
       
     //-----------------------------------------
     getSnippets: function (q, data) {
-        _snippet.getSnippets(q, data);
-      },
+      _snippet.getSnippets(q, data);
+    },
+    
+    //-----------------------------------------
+    testJsonP: function (q, data) {
+      data.random = Math.random();
+      console.log(data);
+      q.write(data);
+    },
     
     //-----------------------------------------
     saveSnippet: function (q, data) {
       _snippet.saveSnippet(q, data);
-      },
+    },
     
     //-----------------------------------------
     createFile: function (q, data) {
@@ -89,16 +96,16 @@ module.exports = {
       }
     },
 
-  //  "static" : function (q) {
-  //    if (q.params.filename != null) { 
-  //     _fs.readFile(q.params.filename, function (err, data) {
-  //        if (err)
-  //          q.write("<b>" + err.toString()+"</b>");
-  //        else
-  //          q.write(data);
-  //        });
-  //      }  
-  //   },
+    //  "static" : function (q) {
+    //    if (q.params.filename != null) { 
+    //     _fs.readFile(q.params.filename, function (err, data) {
+    //        if (err)
+    //          q.write("<b>" + err.toString()+"</b>");
+    //        else
+    //          q.write(data);
+    //        });
+    //      }  
+    //   },
 
 
     //--------------------------------------------

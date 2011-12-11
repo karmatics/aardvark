@@ -125,8 +125,10 @@ var Logger = {
   
   //-----------------------------------
   clear : function (ageSeconds) {
-    while (this.window.textElem.lastChild)
-      this.window.textElem.removeChild(this.window.textElem.lastChild);
+    if (this.window) {
+      while (this.window.textElem.lastChild)
+     this.window.textElem.removeChild(this.window.textElem.lastChild);
+     }
     /*
     
     var earliestTime = Math.round (new Date().getTime() / 1000) - ageSeconds;

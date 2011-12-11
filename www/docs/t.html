@@ -1,0 +1,419 @@
+<html> 
+<style> 
+#mainContainer {
+  margin: 10px;
+  padding: 10px;
+  width: auto;
+  border: 2px solid #ccc;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  }
+table.inputItems {
+  border-collapse: collapse;
+  border-spacing: 0;
+  }
+ 
+table.inputItems td {
+  font-size: 14px;
+  border-bottom: 2px solid #fff;
+  }
+ 
+table.inputItems tr {
+  background-color: #eee;;
+  }
+ 
+table.inputItems td.label {
+  padding: 1px 5px;
+  text-align: right;
+  font-family: arial;
+  clear: both;
+  } 
+table.inputItems td.label2 {
+  padding: 1px 5px;
+  text-align: center;
+  font-family: arial;
+  }
+input.textleft {
+  width: 150px;
+  font-size: 12px;
+  }
+input.textright {
+  width: 250px;
+  font-size: 12px;
+  }
+input.sel {
+  font-size: 12px;
+  }
+input.button {
+  margin-left: 250px;
+  }
+textarea.hiddenta {
+display: none;
+}
+div.lineno {
+  float: left;
+  font-size: 11px;
+  font-family: arial;
+  color: #444;
+  }
+div#time {
+  float: left;
+  margin-left: 65px;
+  font-size: 11px;
+  font-family: arial;
+  color: #444;
+  }
+br {
+ clear: both;
+}
+ 
+</style> 
+
+<body> 
+<div id="mainContainer"> 
+<td id="leftbar">
+<div id="logo">
+<a href="http://www.craigslist.org/about/sites">
+craigslist
+</a>
+</div>
+<ul id="postlks">
+<li>
+<a href="https://post.craigslist.org/c/sfo?lang=en">
+post to classifieds
+</a>
+</li>
+<li>
+<a href="https://accounts.craigslist.org">
+my account
+</a>
+</li>
+<li>
+<a href="http://www.craigslist.org/about/help/">
+help, faq, abuse, legal
+</a>
+</li>
+</ul>
+<form id="search" action="/search/" method="GET">
+<div>
+search craigslist
+</div>
+<input type="hidden" name="areaID" value="1" />
+<input type="hidden" name="subAreaID" />
+<input id="query" name="query" />
+<br />
+<select name="catAbb">
+<option value="ccc">
+community
+</option>
+<option value="eee">
+events
+</option>
+<option value="ggg">
+gigs
+</option>
+<option value="hhh">
+housing
+</option>
+<option value="jjj">
+jobs
+</option>
+<option value="ppp">
+personals
+</option>
+<option value="res">
+resumes
+</option>
+<option value="sss" selected="selected">
+for sale
+</option>
+<option value="bbb">
+services
+</option>
+</select>
+<input id="go" type="submit" value=">" />
+</form>
+<div class="ban" id="calttl">
+<a href="cal/">
+event calendar
+</a>
+</div>
+<table class="cal" summary="calendar">
+<tr class="dys">
+<th>
+S
+</th>
+<th>
+M
+</th>
+<th>
+T
+</th>
+<th>
+W
+</th>
+<th>
+T
+</th>
+<th>
+F
+</th>
+<th>
+S
+</th>
+</tr>
+<tr>
+<td>
+<a href="cal/index20111030.html">
+30
+</a>
+</td>
+<td class="tdy">
+<a href="cal/index20111031.html">
+31
+</a>
+</td>
+<td>
+<a href="cal/index20111101.html">
+1
+</a>
+</td>
+<td>
+<a href="cal/index20111102.html">
+2
+</a>
+</td>
+<td>
+<a href="cal/index20111103.html">
+3
+</a>
+</td>
+<td>
+<a href="cal/index20111104.html">
+4
+</a>
+</td>
+<td>
+<a href="cal/index20111105.html">
+5
+</a>
+</td>
+</tr>
+<tr>
+<td>
+<a href="cal/index20111106.html">
+6
+</a>
+</td>
+<td>
+<a href="cal/index20111107.html">
+7
+</a>
+</td>
+<td>
+<a href="cal/index20111108.html">
+8
+</a>
+</td>
+<td>
+<a href="cal/index20111109.html">
+9
+</a>
+</td>
+<td>
+<a href="cal/index20111110.html">
+10
+</a>
+</td>
+<td>
+<a href="cal/index20111111.html">
+11
+</a>
+</td>
+<td>
+<a href="cal/index20111112.html">
+12
+</a>
+</td>
+</tr>
+<tr>
+<td>
+<a href="cal/index20111113.html">
+13
+</a>
+</td>
+<td>
+<a href="cal/index20111114.html">
+14
+</a>
+</td>
+<td>
+<a href="cal/index20111115.html">
+15
+</a>
+</td>
+<td>
+<a href="cal/index20111116.html">
+16
+</a>
+</td>
+<td>
+<a href="cal/index20111117.html">
+17
+</a>
+</td>
+<td>
+<a href="cal/index20111118.html">
+18
+</a>
+</td>
+<td>
+<a href="cal/index20111119.html">
+19
+</a>
+</td>
+</tr>
+<tr>
+<td>
+<a href="cal/index20111120.html">
+20
+</a>
+</td>
+<td>
+<a href="cal/index20111121.html">
+21
+</a>
+</td>
+<td>
+<a href="cal/index20111122.html">
+22
+</a>
+</td>
+<td>
+<a href="cal/index20111123.html">
+23
+</a>
+</td>
+<td>
+<a href="cal/index20111124.html">
+24
+</a>
+</td>
+<td>
+<a href="cal/index20111125.html">
+25
+</a>
+</td>
+<td>
+<a href="cal/index20111126.html">
+26
+</a>
+</td>
+</tr>
+</table>
+<ul id="leftlinks">
+<li>
+<a href="http://www.craigslist.org/about/scams">
+avoid scams & fraud
+</a>
+</li>
+<li>
+<a href="http://www.craigslist.org/about/safety">
+personal safety tips
+</a>
+</li>
+<li>
+<a href="http://blog.craigslist.org/">
+craigslist blog
+</a>
+</li>
+<li>
+<a href="http://www.bapd.org">
+progressive directory
+</a>
+</li>
+<li>
+<a href="http://www.craigslist.org/about/factsheet">
+craigslist factsheet
+</a>
+</li>
+<li>
+<a href="http://www.craigslist.org/about/best/all/">
+best-of-craigslist
+</a>
+</li>
+<li>
+<a href="http://www.craigslist-tv.com/">
+craigslist TV
+</a>
+</li>
+<li>
+<a href="http://24hoursoncraigslist.com/subs/nowplaying.html">
+craigslist movie & dvd
+</a>
+</li>
+<li>
+<a href="http://craigslistfoundation.org/">
+craigslist foundation
+</a>
+</li>
+<li>
+<a href="http://craigconnects.org/">
+craigconnects
+</a>
+</li>
+<li>
+<a href="http://www.craigslistfoundation.org/bootcamp/">
+boot camp 2011
+</a>
+</li>
+</ul>
+<p id="sflinks">
+<a href="http://www.crh.noaa.gov/forecasts/CAZ006.php">
+weather
+</a>
+<a href="http://quake.wr.usgs.gov/recenteqs/">
+quake
+</a>
+<a href="http://tidesonline.nos.noaa.gov/plotcomp.shtml?station_info=9414290+San+Francisco,+CA">
+tide
+</a>
+</p>
+<br />
+<div>
+<a href="http://www.craigslist.org/about/help/system-status.html">
+system status
+</a>
+</div>
+<br />
+<table id="alks" cellspacing="5" cellpadding="2" summary="about links">
+<tr>
+<td align="center">
+<a href="http://www.craigslist.org/about/terms.of.use">
+terms of use
+</a>
+</td>
+<td align="center">
+<a href="http://www.craigslist.org/about/">
+about
+</a>
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="http://www.craigslist.org/about/privacy_policy">
+privacy
+</a>
+</td>
+<td align="center">
+<a href="http://www.craigslist.org/about/help/">
+help
+</a>
+</td>
+</tr>
+</table>
+</td>
+ </div> 
+
+</body> 
+</html> 

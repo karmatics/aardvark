@@ -1,20 +1,21 @@
 JsSnippetEditor = {
   jsLoaded : [],
-  globals : {},
+  sharedVariables : {},
+  savedSnippets : [],
+  loginData: null,
 
   constructor: function (remoteSaveData) {
     if (remoteSaveData) {
       JsSnippetEditor.remoteSaveData = remoteSaveData;
       JsonPClient.send(
-        remoteSaveData.url + "jsonP", 
+        remoteSaveData.url + "getSnippets", 
         {
-          handlerName: "getSnippets",
           user: remoteSaveData.user,
-          snippetSet: remoteSaveData.group,
-          password: remoteSaveData.pw
+          password: remoteSaveData.pw,
+          group: remoteSaveData.group
         },
-        function (response){
-          if(response){
+        function (response) {
+          if(response) {
             response.snippets.sort (function (a,b) {
                 return a.num - b.num;
               });
@@ -26,7 +27,6 @@ JsSnippetEditor = {
         }
       );
     }
-    
     var self = this;
     this.window = new PopupWindow (
       "Snippet Editor",
@@ -34,7 +34,7 @@ JsSnippetEditor = {
       true,
       function(type, pw){self.windowCallback(type, pw);}
     );
-    
+    this.window.jsEdit = this;
     var mainElem, runButton, deleteButton, saveButton;
     with (DomGenerator) {
       mainElem = TABLE ({className: "th_jsbox"}, TBODY (
@@ -73,61 +73,129 @@ JsSnippetEditor = {
     saveButton.onclick = function() {self.saveButtonHandler ();};
     this.deleteButton.onclick = function() {self.deleteButtonHandler();};
     this.textArea.onkeydown = function() {self.textAreaKeyDownHandler();};
+    this.textArea.onfocus = function() {self.setAsTopItem();};
     DomUtils.addPropertyToElementAndChildren (this.window.element, "isAardvark", true);
     this.populateNameMenu(JsSnippetEditor.selectedItem);
     this.getDataBasedOnGui ();
     this.setNameInputVisibility ();
     JsSnippetEditor.addListener(this);
+    this.setAsTopItem();
     this.window.show ();
     
     var f = function (s) {
-      var log = function (a,depth) {
-        Logger.write (a,null,null,depth);
+        var log = function (x, maxDepth) {
+          Logger.write (x, null, null, maxDepth);
+        };
+        var g = JsSnippetEditor.sharedVariables;
+        with (DomGenerator) {
+          splitter();
+        }
       };
-      var g = JsSnippetEditor.globals;
-      with (DomGenerator) {
-        try { 
-          var x = true;
-        }
-        catch(ex) {
-          JsSnippetEditor.processException(ex);        
-        }
-      }
-    };
-    var a = f.toString().split("var x = true;");
+
+    var a = f.toString().split("splitter();");
     JsSnippetEditor.fs = {
       part1: a[0],
       part2: a[1],
       offset: a[0].split('\n').length
     };
   },
-
-  onerrorFunction : function (error, file, lineNo) {
-    if (file == document.location.href) {
-      Logger.write("error, line " + (lineNo-JsSnippetEditor.fs.offset) + "\n" + error);
-    }
-    else {
-      Logger.write(error + "\n" + file + "\n" + lineNo);
-    }
+  
+  open : function (remoteSaveData) {
+    return new JsSnippetEditor(remoteSaveData);
   },
   
-  processException : function (e) {
-    var stack = e.stack;
-    if (stack) {
-      var a = stack.split('\n');
-      if (e.message)
-        Logger.write(e.message);
-      for (var i=0; i<a.length; i++) {
-        if(a[i].indexOf('evaluateCode')!= -1) 
-          break;
-        Logger.write(a[i]);
+  getLastFocused : function (openIfNone) {
+    var item = PopupWindow.displayedList.list.jsedit;
+    var latest = 0, best = null;
+    while (item) {
+      var jse = item.object;
+      if ((jse = jse.jsEdit) != null) {
+        if (jse.focusedAt > latest) {
+          latest = jse.focusedAt;
+          best = jse;
+        }
       }
-    } else {
-      Logger.write(e);
+      item = item.next;
     }
-  }, 
+    if (best == null && openIfNone) {
+      return this.open();
+    }
+    return best;    
+  },
+
+  prepParse: function () {
+    var currHash = window.location.hash;
+    if (currHash[0] == '#')
+      currHash = currHash.substring(1);
+    var num = this.savedSnippets.length;
+    this.savedSnippets.push({bleh: 'blah'}); 
+    window.location.hash = "snippet_" + num;    
+    this.currHash = currHash;
+  },
+  
+  completeParse: function (currHash) {
+    if (this.currHash != null) {
+      if (this.currHash == '') {
+        if ("pushState" in history)
+          history.pushState("", null, window.location.pathname);
+        else
+          window.location.hash = '';
+      }
+      else
+        window.location.hash = this.currHash;
+      this.currHash = null;
+    }
+  },
+
+  onerrorFunction : function (error, file, lineNo) {
+    Logger.write("error " + file + "\nline " + (lineNo-JsSnippetEditor.fs.offset) + "\n" + error);
+    this.completeParse();
+  },
+  
+  prototype : {
+    evaluateCode : function(snippet) {
+      window.onerror = JsSnippetEditor.onerrorFunction;
+      var s = document.createElement('script'),
+          str = 'runFunction = ' + 
+            JsSnippetEditor.fs.part1 + 
+            snippet.evString +
+            JsSnippetEditor.fs.part2 + ";";
+      s.appendChild(document.createTextNode(
+            str
+            ));
+      
+      JsSnippetEditor.prepParse();
+      document.body.appendChild(s);
+      JsSnippetEditor.completeParse();
+      window.onerror = null;
+      
+      for (var i=0; i<snippet.hereDocs.length; i++) {
+        var hd = snippet.hereDocs[i];
+        JsSnippetEditor.makeVariableByPath (hd.name, hd.lines.join('\n'));
+      }
+        //Logger.write();
+      
+      try {
+        runFunction();
+      } catch (e) {
+        JsSnippetEditor.completeParse();
+        var stack = e.stack;
+        if (stack) {
+          var a = stack.split('\n');
+          if (e.message)
+            Logger.write(e.message);
+          for (var i=0; i<a.length; i++) {
+            if(a[i].indexOf('evaluateCode')!= -1) 
+              break;
+            Logger.write(a[i]);
+          }
+        } else {
+          Logger.write(e);
+        }    
+      }
+    },
  
- prototype : {
+ 
     populateNameMenu : function (selectedItem) {
       var selElem = this.nameSelectElem;
       var haveSelected = false;
@@ -207,8 +275,16 @@ JsSnippetEditor = {
         this.textArea.style.height = (pw.contentElem.offsetHeight-
           (this.cPanelDiv.offsetHeight + 26)) + "px";
       }
+      else if (type == 'tofront') {
+        this.setAsTopItem();
+      }
     },
     
+    //-------------------------------------------
+    setAsTopItem : function (evt) {
+      this.focusedAt = new Date().getTime();
+    },
+
     //-------------------------------------------
     textAreaKeyDownHandler : function (evt) {
       if (!evt)
@@ -242,7 +318,7 @@ JsSnippetEditor = {
             start += insert.length;
             end = start;
             break;
-            case 13: // enter
+          case 13: // enter
             insert = "\n";
             var a = s1.split("\n");
             if (a.length > 0) {
@@ -323,40 +399,25 @@ JsSnippetEditor = {
 
     if (snippet.files.length!=0) {
       this.loadJsFiles(snippet.files, function (f,c) {
-          self.evaluateCode(snippet.evString);
+          self.evaluateCode(snippet);
         },
       JsSnippetEditor.remoteSaveData.url + "js/library/");
     }
     else {
-      this.evaluateCode(snippet.evString);
+      this.evaluateCode(snippet);
     }
-  },
-  
-  evaluateCode : function(code) {
-    var s = document.createElement('script'),
-        str = '(' + 
-          JsSnippetEditor.fs.part1 + 
-          code +
-          JsSnippetEditor.fs.part2 + 
-          ')();';
-    s.appendChild(document.createTextNode(
-          str
-          ));
-    Logger.write(str);
-    window.onerror = JsSnippetEditor.onerrorFunction;
-    document.body.appendChild(s);
   },
   
   //--------------------------------------------
   saveButtonHandler : function () {
     var n = this.nameSelectElem.value;
     if (n == "_new_") {
-        n = this.nameInputElem.value;
-        if (n == "") {
-            alert ("please supply a name");
-            return;
-            }
-        }
+      n = this.nameInputElem.value;
+      if (n == "") {
+        alert ("please supply a name");
+        return;
+      }
+    }
     JsSnippetEditor.updateByName (n, this.textArea.value);
     this.setNameInputVisibility();
     },
@@ -364,7 +425,49 @@ JsSnippetEditor = {
   //---------------------------------------------
   deleteButtonHandler : function () {
     JsSnippetEditor.deleteByName (this.nameSelectElem.value); 
+    },
+
+  hiliteLine : function (lineNo) {
+    var snippet = 
+    JsParser.parseSnippet(this.textArea.value);
+  },
+  
+  //---------------------------------------------
+  addHereDocVar : function (s, contents) {
+    var snippet = JsParser.parseSnippet(this.textArea.value);
+    if (snippet.error) {
+      Logger.write (err);
+      return;
+    } else {
+      var hd = snippet.hereDocs, l = hd.length;
+      var count = 0, lastIndex = -1;
+      var sa = s.split('*');
+      if (sa.length == 2) {
+        while (true) {
+          found = false;
+          var name = sa[0] + count + sa[1];
+          for (var i=0; i<l; i++) {
+            var item = hd[i];
+            if(item.name == name) {
+              lastIndex = i;
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            if (lastIndex != -1)
+              hd.splice (lastIndex+1, 0, {name: name, lines: contents});
+            else
+              hd.push ({name: name, lines: contents});
+            
+            this.textArea.value = JsParser.getFullSnippetString(snippet);
+            return;
+          }
+          count++;
+        }
+      }
     }
+  }
   },
   
   //----------------------------------------
@@ -427,13 +530,12 @@ JsSnippetEditor = {
       this.alertListeners ();
     }
     JsonPClient.send(
-      JsSnippetEditor.remoteSaveData.url + "jsonP",
+      JsSnippetEditor.remoteSaveData.url + "saveSnippet",
       {
-        handlerName: "saveSnippet",
         user: JsSnippetEditor.remoteSaveData.user,
-        snippetSet: JsSnippetEditor.remoteSaveData.group,
+        group: JsSnippetEditor.remoteSaveData.group,
         password: JsSnippetEditor.remoteSaveData.pw,
-        snippet : item
+        snippet: item
       },
       function (response) {
         if (response.snippetNum)
@@ -450,11 +552,10 @@ JsSnippetEditor = {
       if (this.namedItems[i].name == nameOfItem) {
         this.namedItems[i].js = null;
         JsonPClient.send(
-          JsSnippetEditor.remoteSaveData.url + "jsonP",
+          JsSnippetEditor.remoteSaveData.url + "saveSnippet",
           {
-            handlerName: "saveSnippet",
             user: JsSnippetEditor.remoteSaveData.user,
-            snippetSet: JsSnippetEditor.remoteSaveData.group,
+            group: JsSnippetEditor.remoteSaveData.group,
             password: JsSnippetEditor.remoteSaveData.pw,
             snippet : this.namedItems[i]
           },
@@ -478,6 +579,7 @@ JsSnippetEditor = {
     return a;
   },
   
+  //----------------------------------------
   findChars: function (charList, string) {
     var out = [];
     for (var i=0; i<charList.length; i++) {
@@ -495,6 +597,7 @@ JsSnippetEditor = {
     return out;
   },
 
+  //----------------------------------------
   isIntegerString: function(s) {
     var l = s.length;
     for (var i=0; i<l; i++) {
@@ -504,80 +607,86 @@ JsSnippetEditor = {
     return true;
   },
 
+  //----------------------------------------
   makeVariableByPath: function (s, value) {
-    var path = [];
-    s = '{' + s + '}';
-    var chars = findChars("[].{}", s);
-    var numSpans = chars.length-1;
-    
-    for (var i=0; i<numSpans; i++) {
-      var prev = chars[i], next = chars[i+1];
-      var type = 'error';
-      if (prev.which == '[') {
-        if(next.which == ']')
-          type = 'arraymember';
-      }
-      else if (prev.which == '.' || prev.which == '{') {
-        type = 'member';
-      }
-      if (type != 'error') {
-        var varName = s.substring(prev.index+1, next.index);
-        var isInt = false, isPush = false;
-        if (type == 'arraymember') {
-          var quotes = findChars("'\"", varName);
-          if (quotes.length == 2) {
-            varName = varName.substring(quotes[0].index+1, quotes[1].index+1);
-          }
-          else if (isIntegerString(varName)) {
-            isInt = true;
-          }
+    try {
+      var path = [];
+      s = '{' + s + '}';
+      var chars = JsSnippetEditor.findChars("[].{}", s);
+      var numSpans = chars.length-1;
+      
+      for (var i=0; i<numSpans; i++) {
+        var prev = chars[i], next = chars[i+1];
+        var type = 'error';
+        if (prev.which == '[') {
+          if(next.which == ']')
+            type = 'arraymember';
         }
-        
-        if (varName.length == 0) {
-          if(type=='arraymember') {
-            isInt = true;
-            isPush = true;
-          }
-          else {
-            continue;  
-          }
+        else if (prev.which == '.' || prev.which == '{') {
+          type = 'member';
         }
-        path.push({
-            name: varName,
-            type: type,
-            isInt: isInt,
-            isPush: isPush
-          });
+        if (type != 'error') {
+          var varName = s.substring(prev.index+1, next.index);
+          var isInt = false, isPush = false;
+          if (type == 'arraymember') {
+            var quotes = JsSnippetEditor.findChars("'\"", varName);
+            if (quotes.length == 2) {
+              varName = varName.substring(quotes[0].index+1, quotes[1].index+1);
+            }
+            else if (JsSnippetEditor.isIntegerString(varName)) {
+              isInt = true;
+            }
+          }
+          
+          if (varName.length == 0) {
+            if(type=='arraymember') {
+              isInt = true;
+              isPush = true;
+            }
+            else {
+              continue;  
+            }
+          }
+          path.push({
+              name: varName,
+              type: type,
+              isInt: isInt,
+              isPush: isPush
+            });
+        }
       }
-    }
-    var curr = window, item;
-    
-    for (var i=0; i<path.length-1; i++) {
-      item = path[i];
-      if (i==0 && item.name == 'g') {
-        if (JsSnippetEditor.sharedVariables == null)
-          JsSnippetEditor.sharedVariables = {};
-        curr = JsSnippetEditor.sharedVariables;
-      }
-      else {
-        if (curr[item.name]) {
-          curr = curr[item.name];
+      var curr = window, item;
+      
+      for (var i=0; i<path.length-1; i++) {
+        item = path[i];
+        if (i==0 && item.name == 'g') {
+          if (JsSnippetEditor.sharedVariables == null)
+            JsSnippetEditor.sharedVariables = {};
+          curr = JsSnippetEditor.sharedVariables;
         }
         else {
-          var next = path[i+1];
-          if(item.isPush && curr.length !== undefined)
-            curr = curr[curr.length] = (next.isInt)?[]:{};
-          else
-            curr = curr[item.name] = (next.isInt)?[]:{};
+          if (curr[item.name]) {
+            curr = curr[item.name];
+          }
+          else {
+            var next = path[i+1];
+            if(item.isPush && curr.length !== undefined)
+              curr = curr[curr.length] = (next.isInt)?[]:{};
+            else
+              curr = curr[item.name] = (next.isInt)?[]:{};
+          }
         }
       }
+      item = path[path.length-1]
+      if (item.isPush && curr.length !== undefined)
+        curr[curr.length] = value;
+      else
+        curr[item.name] = value;
     }
-    item = path[path.length-1]
-    if (item.isPush && curr.length !== undefined)
-      curr[curr.length] = value;
-    else
-      curr[item.name] = value;
+  catch (e) {
+    Logger.write(e + "bad here doc");
   }
+}
 };
 
 

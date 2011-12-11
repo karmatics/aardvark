@@ -1,37 +1,269 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
+<script src='../js/library/Cookie.js'></script>
+<script src='../js/library/DomGenerator.js'></script>
 <style>
+table.inputItems {
+  border-collapse: collapse;
+  border-spacing: 0;
+  }
+ 
+table.inputItems td {
+  font-size: 14px;
+  border-bottom: 2px solid #fff;
+  }
+ 
+table.inputItems tr {
+  background-color: #eee;;
+  }
+ 
+table.inputItems td.label {
+  padding: 1px 5px;
+  text-align: right;
+  font-family: arial;
+  clear: both;
+  }
+input.textleft {
+  width: 150px;
+  font-size: 12px;
+  }
+input.textright {
+  width: 250px;
+  font-size: 12px;
+  }
+input.sel {
+  font-size: 12px;
+  }
+input.button {
+  margin-left: 250px;
+  }
 pre span.gr {
-font-weight: bold;
-background-color: #afa;
-}
+  font-weight: bold;
+  background-color: #afa;
+  }
 pre span.bl {
-font-weight: bold;
-background-color: #acf;
-}
+  font-weight: bold;
+  background-color: #acf;
+  }
 </style>
+<script>
+ 
+var keyHandler = function (desc) {
+  if (desc.currTimerHandle)
+    clearTimeout(desc.currTimerHandle);
+  else
+    var ta = document.getElementById('snippet_ta');
+  desc.currTimerHandle = setTimeout(function(){updateBookmarklet(desc);}, 200);
+};
+
+var makeItems = function (desc) {
+  with (DomGenerator) {
+    var tb, e = TABLE ({className:"inputItems"},
+      tb = TBODY (
+        
+      )
+    );
+    var f =  function(){
+      keyHandler(desc)
+      };
+    for (var i=0; i<desc.items.length; i++) {
+      var item = desc.items[i];
+      tb.appendChild(TR (
+        TD ({className:"label"},
+          (item.label || item.name) + ":"
+        ),
+        TD (
+          item.input = INPUT ({className:"textright", type:"text"})
+        )
+      ));
+      item.input.onkeyup = f;
+      var val = Cookie.getCookie(desc.prefix + item.name);
+      item.input.value = (val || item.defaultValue);
+    }
+  }
+  updateBookmarklet(desc);
+  return e;
+};
+
+var updateBookmarklet = function (desc) {
+  var v = desc.loadFunc.toString();
+  var delim = '\\$\\$';
+  for (var i=0; i<desc.items.length; i++) {
+    var item = desc.items[i];
+    var re = new RegExp(delim + item.name + delim, 'g');
+    v = v.replace(re, item.input.value);
+    Cookie.setCookie(desc.prefix + item.name, item.input.value, '/', 5);
+  }
+  v = 'javascript:(' + v.replace(new RegExp('\\s', 'g'), '') + ')()';
+  
+  var l = document.getElementById(desc.prefix + 'link');
+  l.href = v;
+  var ta = document.getElementById(desc.prefix + 'ta');
+  ta.value = v;
+  desc.currTimerHandle = null;
+};
+
+var aardvarkDesc = {
+  // note: load function must be written so it will work if 
+  // whitespace is stripped out (i.e. should avoid 'var' and 'new')
+  loadFunc:  function (j, c, u, s) {
+    j = window.aardvark;
+    c = document;
+    u = '$$url$$';
+    if (j)
+      j.start();
+    else {
+      s = c.createElement('script');
+      s.src = u + 'aardvark/bookmarklet.js?x=' + Math.random();
+      c.body.appendChild(s);
+    }
+  },
+  prefix: "aardvark_", 
+  items: [
+    {
+    name: 'url',
+    defaultValue: 'http://localhost/'
+    }
+  ]
+};
+
+
+var snippetDesc = {
+  // note: load function must be written so it will work if 
+  // whitespace is stripped out (i.e. should avoid 'var' and 'new'
+  loadFunc:  function (j, c, u, s) {
+    j = window.JsSnippetEditor;
+    c = document;
+    u = '$$url$$';
+    if (j)
+      j.open();
+    else {
+      s = c.createElement('script');
+      s.src = u + 'snippetEditor?user=$$user$$&pw=$$password$$&group=$$group$$&url=' + u + '&x=' + Math.random();
+      c.body.appendChild(s);
+    }
+  },
+  prefix: "snippet_", 
+  items: [
+    {
+    name: 'user',
+    defaultValue: 'rob',
+    label: 'username'
+    },
+    {
+    name: 'password',
+    defaultValue: 'mosquito'
+    },
+    {
+    name: 'group',
+    defaultValue: 'snippets1',
+    label: 'snippet group'
+    },
+    {
+    name: 'url',
+    defaultValue: 'http://localhost/'
+    }
+  ]
+};
+
+var snippet2Desc = {
+  // note: load function must be written so it will work if 
+  // whitespace is stripped out (i.e. should avoid 'var' and 'new'
+  loadFunc:  function (j, c, u) {
+    j = window.JsSnippetEditor;
+    c = document;
+    u = '$$url$$';
+    if (j)
+      j.open();
+    else {
+      s = c.createElement('script');
+      s.src = u + 'snippetEditor1.js?&x=' + Math.random();
+      c.getElementsByTagName('HEAD')[0].appendChild(s);
+    }
+  },
+  prefix: "snippet2_", 
+  items: [
+    {
+    name: 'url',
+    defaultValue: 'http://localhost/'
+    }
+  ]
+};
+
+var ietestDesc = {
+  // note: load function must be written so it will work if 
+  // whitespace is stripped out (i.e. should avoid 'var' and 'new'
+  loadFunc:  function (j, c, u, s) {
+    j = window.ieTest;
+    c = document;
+    u = '$$url$$';
+    if (j)
+      j.run();
+    else {
+      s = c.createElement('script');
+      s.src = u + 'js/library/ieTest.js?x=' + Math.random();
+      c.getElementsByTagName('HEAD')[0].appendChild(s);
+    }
+  },
+  prefix: "ietest_", 
+  items: [
+    {
+    name: 'url',
+    defaultValue: 'http://localhost/'
+    }
+  ]
+};
+
+</script>
 </head>
  <body>
- <p>To add aardvark as a bookmarklet, make a bookmark by dragging the following link to your bookmarks bar [ <a href="javascript:(function(d,s,j,c){d='localhost';c=document;j=window.x;if(j){new j();}else{s=c.createElement('script');s.isAardvark=true;s.src='http://'+d+'/aardvark/bookmarklet.js';c.body.appendChild(s);}})();">Aardvark</a> ] (or right clicking, and picking "bookmark this link"), or by editing an existing bookmark and pasting the following into it:</p>
+ <p>To add aardvark as a bookmarklet, make a bookmark by dragging the following link to your bookmarks bar [ <a href="" id="aardvark_link">Aardvark</a> ] (or right clicking, and picking "bookmark this link"), or by editing an existing bookmark and pasting the following into it:</p>
+<div id="aardvark_div"></div>
     
-<textarea style="width: 800px; height: 100px;font-size: 15px; font-weight: bold;font-family: courier new">javascript:(function(d,s,j,c){d='localhost';c=document;j=window.x;if(j){new j();}else{s=c.createElement('script');s.isAardvark=true;s.src='http://'+d+'/aardvark/bookmarklet.js';c.body.appendChild(s);}})();
-</textarea>
-<p>
-This assumes you have it at at "http://localhost/aardvark/bookmarklet.js"
+<textarea id="aardvark_ta" style="width: 800px; height: 80px;font-size: 15px; font-weight: bold;font-family: courier new">
+</textarea><p>
+
 </p>
 <hr>
- <p>To add the snippet editor as a bookmarklet, make a bookmark by dragging the following link to your bookmarks bar [ <a href="javascript:(function(s,j,c){c=document;j=window.JsSnippetEditor;if(j){new j();}else{s=c.createElement('script');s.src='http://localhost/js/library/Snippet.php?user=robsnippets&pw=slushpuppy&group=default';c.body.appendChild(s);}})();">Snippet</a> ] (or right clicking, and picking "bookmark this link"), or by editing an existing bookmark and pasting the following into it:</p>
+
+<div id="snippet_div"></div>
+
+ <p>To add the snippet editor as a bookmarklet, make a bookmark by dragging the following link to your bookmarks bar [ <a href="" id="snippet_link" >Snippet</a> ] (or right clicking, and picking "bookmark this link"), or by editing an existing bookmark and pasting the following into it:</p>
     
-<textarea style="width: 800px; height: 100px;font-size: 15px; font-weight: bold;font-family: courier new">javascript:(function(s,j,c){c=document;j=window.JsSnippetEditor;if(j){new j();}else{s=c.createElement('script');s.src='http://localhost/js/library/Snippet.php?user=robsnippets&pw=slushpuppy&group=default';c.body.appendChild(s);}})();
+<textarea id="snippet_ta" style="width: 800px; height: 80px;font-size: 15px; font-weight: bold;font-family: courier new">
 </textarea>
 
-<p>
-This assumes you have various things, but importantly php must be able to write to files in the directory js/library/remotestoredata/robsnippets.
-</p><p>
-Also, be aware that defaults.js, in that directory, is where the snippets are stored.  you can change the bookmarklet to have it save to a different file.  If you save multiple times too fast, it will corrupt the file, and you will have to pull one down from git.
-</p>
+<hr>
+<!-- 
+<div id="snippet2_div"></div>
 
+ <p>To add the snippet editor as a bookmarklet, make a bookmark by dragging the following link to your bookmarks bar [ <a href="" id="snippet2_link" >Snippet</a> ] (or right clicking, and picking "bookmark this link"), or by editing an existing bookmark and pasting the following into it:</p>
+    
+<textarea id="snippet2_ta" style="width: 800px; height: 80px;font-size: 15px; font-weight: bold;font-family: courier new">
+</textarea>
+
+<hr>
+
+<div id="ietest_div"></div>
+
+ <p>To add the ietest as a bookmarklet, make a bookmark by dragging the following link to your bookmarks bar [ <a href="" id="ietest_link" >ie test</a> ] (or right clicking, and picking "bookmark this link"), or by editing an existing bookmark and pasting the following into it:</p>
+    
+<textarea id="ietest_ta" style="width: 800px; height: 80px;font-size: 15px; font-weight: bold;font-family: courier new">
+</textarea>
+
+-->
+<br clear="both">
+<script>
+var e = makeItems (aardvarkDesc);
+document.getElementById('aardvark_div').appendChild(e);
+var e = makeItems (snippetDesc);
+document.getElementById('snippet_div').appendChild(e);
+/*var e = makeItems (snippet2Desc);
+document.getElementById('snippet2_div').appendChild(e);
+var e = makeItems (ietestDesc);
+document.getElementById('ietest_div').appendChild(e);*/
+</script>
 
 </body>
 </html>

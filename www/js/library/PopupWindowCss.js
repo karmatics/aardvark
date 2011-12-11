@@ -6,12 +6,12 @@
     var isIE = (document.all != null);
     
     if (isIE) {
-      for (var i=0;i<cssArray.length;i+=2) {
+     /* for (var i=0;i<cssArray.length;i+=2) {
         var a = cssArray[i].split(",");
         for (var j=0; j<a.length; j++) {
           cssNode.addRule(a[j], cssArray[i+1]);
         }
-      }
+      }*/
     }
     else {
       for (var i=0; i<cssArray.length; i+=2)

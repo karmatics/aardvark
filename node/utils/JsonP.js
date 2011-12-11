@@ -2,21 +2,27 @@ var _jsonAccumulator = {};
 
 module.exports = {
   processRequest : function (q) {
-    if (q.params.data && q.params.id) {
-      var item, id = parseInt(q.params.id);
+    if (q.params.d && q.params.i) {
+      var item, id = parseInt(q.params.i);
       if(_jsonAccumulator[id] === undefined) {
         _jsonAccumulator[id] = {
-          expected: parseInt(q.params.nc),
+          expected: parseInt(q.params.n),
           count: 0,
-          data: []
+          data: [],
+          timestamp: new Date()
           };
         }
       item = _jsonAccumulator[id];
       item.count++;
-      item.data[parseInt(q.params.chunk)] = q.params.data;
+      item.data[parseInt(q.params.c)] = q.params.d;
       if (item.count == item.expected) {
-        var data = item.data.join('');
-        data = JSON.parse(data);
+        var dataString = item.data.join('');
+        data = JSON.parse(dataString);
+        if(data == null) {
+          dataString = dataString.replace(
+            /(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":');
+          data = JSON.parse(dataString);
+          }
         q.write = function (o) {
           q.response.writeHead(200, {'Content-Type': 'text/javascript'});
           q.response.end("JsonPClient.serverCallback(" + id + "," + JSON.stringify(o) + ");");
@@ -36,5 +42,9 @@ module.exports = {
   q.response.writeHead(200, {'Content-Type': 'text/javascript'});
   q.response.end("JsonPClient.serverCallback(" + id + ", null);");
   return null
+  },
+  
+  clearExpired : function () {
+    // todo
   }
 };

@@ -1,9 +1,3 @@
-var makeTemplate = function (elem) {
- var te = (window.opener) ? window.opener.TemplateEditor : TemplateEditor;
- new te (elem, document);
- };
-
-
 var showHtml = function (elem) {
   
     };
@@ -17,7 +11,7 @@ srcFiles: [
   'aardvarkUtils.js',
   'aardvarkDBox.js',
   'aardvarkCommands.js',
-  'aardvarkMain.js'
+  'aardvarkMain.js'  
   ],
 
 //------------------------------------------------
@@ -45,7 +39,12 @@ loadObject: function  (obj) {
     this.showHelpTip(0);
     
     // add our custom commands
-    // aardvark.addCommand ("examine", MyFunctions.browseElement);
+    aardvark.addCommand ("xpath", function(e) {
+      if (window.SimplePath)
+        SimplePath.openEditor(e);
+      else
+        alert("please load snippet editor");    
+      });
     // add our custom commands
     }
   }
