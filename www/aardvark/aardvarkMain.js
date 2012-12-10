@@ -388,10 +388,15 @@ var c;
 if (evt.ctrlKey || evt.metaKey || evt.altKey)
   return true;
 
+var arrows = { 37: 0x2190 // left arrow
+             , 38: 0x2191 // up arrow
+             , 39: 0x2192 // right arrow
+             , 40: 0x2193 // down arrow
+             };
 var keyCode = evt.keyCode ? evt.keyCode :
       evt.charCode ? evt.charCode :
       evt.which ? evt.which : 0;
-c = String.fromCharCode(keyCode).toLowerCase();
+c = String.fromCharCode(arrows[keyCode] || keyCode).toLowerCase();
 var command = aardvark.getByKey(c);
 
 if (command) {
@@ -405,7 +410,7 @@ if (command) {
       aardvark.showKeybox (command);
     }
   }
-if (c < 'a' || c > 'z')
+else if (c < 'a' || c > 'z')
   return true;
 if (evt.preventDefault)
   evt.preventDefault ();
@@ -444,13 +449,13 @@ else {
     this.doc.attachEvent ("onmouseover", this.mouseOver);
     this.doc.attachEvent ("onmousemove", this.mouseMove);
     this.doc.attachEvent ("onmouseup", this.mouseUp);
-    this.doc.attachEvent ("onkeypress", this.keyDown);
+    this.doc.attachEvent ("onkeydown", this.keyDown);
     }
   else {
     this.doc.addEventListener ("mouseover", this.mouseOver, false);
     this.doc.addEventListener ("mouseup", this.mouseUp, false);
     this.doc.addEventListener ("mousemove", this.mouseMove, false);
-    this.doc.addEventListener ("keypress", this.keyDown, false);
+    this.doc.addEventListener ("keydown", this.keyDown, false);
     }
 
   // show tip if its been more than an hour
