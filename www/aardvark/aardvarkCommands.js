@@ -28,6 +28,8 @@ var keyCommands = [
   ["help", this.showMenu, true],
   ["xpath", this.getElementXPath],
   ["element path", this.getElementPath],
+  ["\u2191 prev match", this.moveToPrev],
+  ["\u2193 next match", this.moveToNext],
   ["global", this.makeGlobalFromElement]
   ];
 
@@ -52,7 +54,7 @@ else {
   if (mode == "bookmarklet")
     return;
   }
-    
+
 if (this.strings[name] && this.strings[name] != "")
   name = this.strings[name];
 
@@ -834,6 +836,37 @@ getElementPath: function(elem) {
   if(window.SimplePath) {
     SimplePath.openEditor(elem);
   }
+},
+
+//------------------------------------------------------------
+moveToPrev: function(elem) {
+  var all  = this.findSimilarElements(elem)
+    , idx  = all.indexOf(elem)
+    , prev = all[idx - 1];
+  if (prev) {
+    prev.scrollIntoView();
+    aardvark.focus(prev);
+    return true;
+  }
+  return false;
+},
+
+//------------------------------------------------------------
+moveToNext: function(elem) {
+  var all  = this.findSimilarElements(elem)
+    , idx  = all.indexOf(elem)
+    , next = all[idx + 1];
+  if (next) {
+    next.scrollIntoView();
+    aardvark.focus(next);
+    return true;
+  }
+  return false;
+},
+
+findSimilarElements: function(elem) {
+  var selector = SimplePath.genericCssSelectorFromElement(elem);
+  return [].slice.call(document.querySelectorAll(selector), 0);
 },
 
 //--------------------------------------------------------

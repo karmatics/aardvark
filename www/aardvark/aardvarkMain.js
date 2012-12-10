@@ -370,13 +370,16 @@ if (aardvark.isOnAardvarkElem && aardvark.didWider) {
   }
 aardvark.isOnAardvarkElem = false;
 aardvark.didWider = false;
-  
-if (elem == aardvark.selectedElem)
-  return;
-aardvark.widerStack = null;
-aardvark.selectedElem = elem;
-aardvark.showBoxAndLabel (elem, aardvark.makeElementLabelString (elem));
-aardvark.mouseMoved = false;
+
+aardvark.focus(elem);
+},
+
+focus : function (elem) {
+  if (elem == aardvark.selectedElem) return;
+  aardvark.widerStack = null;
+  aardvark.selectedElem = elem;
+  aardvark.showBoxAndLabel(elem, aardvark.makeElementLabelString(elem));
+  aardvark.mouseMoved = false;
 },
 
 //-------------------------------------------------
