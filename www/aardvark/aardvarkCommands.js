@@ -792,16 +792,22 @@ return null;
 getElementXPath: function(elem) {
   var path = "";
   for (; elem && elem.nodeType == 1; elem = elem.parentNode) {
-    var index = 1;
+    var index = 1, total;
     for (var sib = elem.previousSibling; sib; sib = sib.previousSibling) {
       if (sib.nodeType == 1 && sib.tagName == elem.tagName)
         index++;
-      }
-    var xname = "xhtml:" + elem.tagName.toLowerCase();
+    }
+    for (sib = elem.nextSibling, total = index; sib; sib = sib.nextSibling) {
+      if (sib.nodeType == 1 && sib.tagName == elem.tagName)
+        total++;
+    }
+    var xname = /*"xhtml:" +*/ elem.tagName.toLowerCase();
     if (elem.id) {
+      path = 'id("'+ elem.id +'")' + path;
+      break;
       xname += "[@id='" + elem.id + "']";
     } else {
-      if (index > 1)
+      if (index != total)
         xname += "[" + index + "]";
     }
     path = "/" + xname + path;
