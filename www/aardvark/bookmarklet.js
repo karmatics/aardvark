@@ -37,14 +37,14 @@ loadObject: function  (obj) {
     // start aardvark and show its help tip
     this.start ();
     this.showHelpTip(0);
-    
+
     // add our custom commands
-    aardvark.addCommand ("xpath", function(e) {
-      if (window.SimplePath)
-        SimplePath.openEditor(e);
-      else
-        alert("please load snippet editor");    
-      });
+    //aardvark.addCommand ("xpath", function(e) {
+    //  if (window.SimplePath)
+    //    SimplePath.openEditor(e);
+    //  else
+    //    alert("please load snippet editor");
+    //  });
     // add our custom commands
     }
   }

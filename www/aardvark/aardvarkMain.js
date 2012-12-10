@@ -211,6 +211,11 @@ validIfNotInlineElements : {
   CODE: 1
   },
 
+neverValidElements : {
+  HTML: 1,
+  BODY: 1
+  },
+
 alwaysValidElements : {
   DIV: 1,
   IFRAME: 1,
@@ -233,34 +238,31 @@ alwaysValidElements : {
 // given an element, walk upwards to find the first
 // valid selectable element
 findValidElement : function (elem) {
-while (elem) {
-  if (this.alwaysValidElements[elem.tagName])
-    return elem;
-  else if (this.validIfBlockElements[elem.tagName]) {
-    if (this.doc.defaultView) {
-      if (this.doc.defaultView.getComputedStyle
-            (elem, null).getPropertyValue("display") == 'block')
-        return elem;
-      }
-    else if (elem.currentStyle){
-      if (elem.currentStyle["display"] == 'block')
-        return elem;   
-      }
-    }
-  else if (this.validIfNotInlineElements[elem.tagName]){
-    if (this.doc.defaultView) {
-      if (this.doc.defaultView.getComputedStyle
-            (elem, null).getPropertyValue("display") != 'inline')
-        return elem;
-      }
-    else if (elem.currentStyle) {
-      if (elem.currentStyle["display"] != 'inline')
-        return elem;   
-      }
-    }
-  elem = elem.parentNode;
+function getStyle(elem, prop) {
+  return this.doc.defaultView ?
+    this.doc.defaultView.getComputedStyle(elem, null).getPropertyValue(prop) :
+    elem.currentStyle ? elem.currentStyle[prop] : null;
   }
-return elem;
+  var display, name;
+  while (elem) {
+    if (this.alwaysValidElements[name = elem.tagName])
+      return elem;
+    if (this.neverValidElements[name])
+      return null;
+    if ('inline' !== (display = getStyle.call(this, elem, 'display')))
+      return elem;
+    // why would we ever want to reject a block level element?
+    // if (this.validIfBlockElements[name]) {
+    //   if (display === 'block')
+    //     return elem;
+    // }
+    // else if (this.validIfNotInlineElements[elem.tagName]) {
+    //   if (display !== 'inline')
+    //     return elem;
+    // }
+    elem = elem.parentNode;
+  }
+  return elem;
 },
 
 //-------------------------------------------------
@@ -368,13 +370,16 @@ if (aardvark.isOnAardvarkElem && aardvark.didWider) {
   }
 aardvark.isOnAardvarkElem = false;
 aardvark.didWider = false;
-  
-if (elem == aardvark.selectedElem)
-  return;
-aardvark.widerStack = null;
-aardvark.selectedElem = elem;
-aardvark.showBoxAndLabel (elem, aardvark.makeElementLabelString (elem));
-aardvark.mouseMoved = false;
+
+aardvark.focus(elem);
+},
+
+focus : function (elem) {
+  if (elem == aardvark.selectedElem) return;
+  aardvark.widerStack = null;
+  aardvark.selectedElem = elem;
+  aardvark.showBoxAndLabel(elem, aardvark.makeElementLabelString(elem));
+  aardvark.mouseMoved = false;
 },
 
 //-------------------------------------------------
@@ -386,10 +391,15 @@ var c;
 if (evt.ctrlKey || evt.metaKey || evt.altKey)
   return true;
 
+var arrows = { 37: 0x2190 // left arrow
+             , 38: 0x2191 // up arrow
+             , 39: 0x2192 // right arrow
+             , 40: 0x2193 // down arrow
+             };
 var keyCode = evt.keyCode ? evt.keyCode :
       evt.charCode ? evt.charCode :
       evt.which ? evt.which : 0;
-c = String.fromCharCode(keyCode).toLowerCase();
+c = String.fromCharCode(arrows[keyCode] || keyCode).toLowerCase();
 var command = aardvark.getByKey(c);
 
 if (command) {
@@ -403,7 +413,7 @@ if (command) {
       aardvark.showKeybox (command);
     }
   }
-if (c < 'a' || c > 'z')
+else if (c < 'a' || c > 'z')
   return true;
 if (evt.preventDefault)
   evt.preventDefault ();
@@ -442,13 +452,13 @@ else {
     this.doc.attachEvent ("onmouseover", this.mouseOver);
     this.doc.attachEvent ("onmousemove", this.mouseMove);
     this.doc.attachEvent ("onmouseup", this.mouseUp);
-    this.doc.attachEvent ("onkeypress", this.keyDown);
+    this.doc.attachEvent ("onkeydown", this.keyDown);
     }
   else {
     this.doc.addEventListener ("mouseover", this.mouseOver, false);
     this.doc.addEventListener ("mouseup", this.mouseUp, false);
     this.doc.addEventListener ("mousemove", this.mouseMove, false);
-    this.doc.addEventListener ("keypress", this.keyDown, false);
+    this.doc.addEventListener ("keydown", this.keyDown, false);
     }
 
   // show tip if its been more than an hour

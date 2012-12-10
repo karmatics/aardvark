@@ -10,9 +10,10 @@ if (this.keyCommands.length > 0)
 // 1: function
 // 2: no element needed (null for element commands)
 // 3: "extension" of ext only, "bookmarklet" for bm only, null for both
+// 4: keystroke (derived from the name by default)
 var keyCommands = [
-  ["wider", this.wider],
-  ["narrower", this.narrower],
+  ["wider+\u2190", this.wider],
+  ["narrower+\u2192", this.narrower],
   ["undo", this.undo, true],
   ["quit", this.quit, true],
   ["remove", this.removeElement],
@@ -23,10 +24,12 @@ var keyCommands = [
   ["colorize", this.colorize],
   ["view source", this.viewSource],
   ["javascript", this.makeJavascript],
-  ["paste", this.domPath],
+  ["paste", this.paste],
   ["help", this.showMenu, true],
   ["xpath", this.getElementXPath],
   ["element path", this.getElementPath],
+  ["\u2191 prev match", this.moveToPrev],
+  ["\u2193 next match", this.moveToNext],
   ["global", this.makeGlobalFromElement]
   ];
 
@@ -51,7 +54,7 @@ else {
   if (mode == "bookmarklet")
     return;
   }
-    
+
 if (this.strings[name] && this.strings[name] != "")
   name = this.strings[name];
 
@@ -59,7 +62,12 @@ if (keystroke) {
   keyOffset = -1;
   }
 else {
-  var keyOffset = name.indexOf('&');
+  var keyOffset = name.indexOf('&')
+    , andOffset = name.indexOf('+'), alias;
+  if (andOffset != -1) {
+    alias = name.charAt(andOffset+1);
+    name = name.substring(0, andOffset);
+  }
   if (keyOffset != -1) {
     keystroke = name.charAt(keyOffset+1);
     name = name.substring (0, keyOffset) + name.substring (keyOffset+1);
@@ -74,12 +82,13 @@ var command = {
     keystroke: keystroke,
     keyOffset: keyOffset,
     func: func
-    } 
+    };
 if (noElementNeeded)
-  command.noElementNeeded = true; 
- 
+  command.noElementNeeded = true;
+
 for (var i=0; i<this.keyCommands.length; i++) {
-  if (this.keyCommands[i].keystroke == keystroke) {
+  var key = this.keyCommands[i].keystroke;
+  if (key == keystroke || key == alias) {
     if (!suppressMessage)
       this.showMessage ("<p style='color: #000; margin: 3px 0 0 0;'>command \"<b>" + this.keyCommands[i].name + "</b>\" replaced with \"<b>" + name + "</b>\"</p>");
     this.keyCommands[i] = command;
@@ -89,6 +98,11 @@ for (var i=0; i<this.keyCommands.length; i++) {
 if (!suppressMessage)
   this.showMessage ("<p style='color: #000; margin: 3px 0 0 0;'>command \"<b>" + name + "</b>\" added</p>");
 this.keyCommands.push (command);
+if (alias)
+  this.keyCommands.push({ name: name
+                        , keystroke: alias
+                        , keyOffset: -1
+                        , func: func });
 },
 
 
@@ -151,14 +165,14 @@ this.doc.aardvarkRunning = false;
 if (this.doc.all) {
   this.doc.detachEvent ("onmouseover", this.mouseOver);
   this.doc.detachEvent ("onmousemove", this.mouseMove);
-  this.doc.detachEvent ("onkeypress", this.keyDown);
+  this.doc.detachEvent ("onkeydown", this.keyDown);
   this.doc.detachEvent ("onmouseup", this.mouseUp, false);
   }
 else {
   this.doc.removeEventListener("mouseover", this.mouseOver, false);
   this.doc.removeEventListener("mousemove", this.mouseMove, false);
   this.doc.removeEventListener("mouseup", this.mouseUp, false);
-  this.doc.removeEventListener("keypress", this.keyDown, false);
+  this.doc.removeEventListener("keydown", this.keyDown, false);
   }
 
 this.removeBoxFromBody ();
@@ -173,11 +187,11 @@ return true;
 suspend : function () {
 if (this.doc.all) {
   this.doc.detachEvent ("onmouseover", this.mouseOver);
-  this.doc.detachEvent ("onkeypress", this.keyDown);
+  this.doc.detachEvent ("onkeydown", this.keyDown);
   }
 else {
   this.doc.removeEventListener("mouseover", this.mouseOver, false);
-  this.doc.removeEventListener("keypress", this.keyDown, false);
+  this.doc.removeEventListener("keydown", this.keyDown, false);
   }
 return true;
 },
@@ -186,11 +200,11 @@ return true;
 resume : function () {
 if (this.doc.all) {
   this.doc.attachEvent ("onmouseover", this.mouseOver);
-  this.doc.attachEvent ("onkeypress", this.keyDown);
+  this.doc.attachEvent ("onkeydown", this.keyDown);
   }
 else {
   this.doc.addEventListener ("mouseover", this.mouseOver, false);
-  this.doc.addEventListener ("keypress", this.keyDown, false);
+  this.doc.addEventListener ("keydown", this.keyDown, false);
   }
 return true;
 },
@@ -792,16 +806,22 @@ return null;
 getElementXPath: function(elem) {
   var path = "";
   for (; elem && elem.nodeType == 1; elem = elem.parentNode) {
-    var index = 1;
+    var index = 1, total;
     for (var sib = elem.previousSibling; sib; sib = sib.previousSibling) {
       if (sib.nodeType == 1 && sib.tagName == elem.tagName)
         index++;
-      }
-    var xname = "xhtml:" + elem.tagName.toLowerCase();
+    }
+    for (sib = elem.nextSibling, total = index; sib; sib = sib.nextSibling) {
+      if (sib.nodeType == 1 && sib.tagName == elem.tagName)
+        total++;
+    }
+    var xname = /*"xhtml:" +*/ elem.tagName.toLowerCase();
     if (elem.id) {
+      path = 'id("'+ elem.id +'")' + path;
+      break;
       xname += "[@id='" + elem.id + "']";
     } else {
-      if (index > 1)
+      if (index != total)
         xname += "[" + index + "]";
     }
     path = "/" + xname + path;
@@ -816,6 +836,37 @@ getElementPath: function(elem) {
   if(window.SimplePath) {
     SimplePath.openEditor(elem);
   }
+},
+
+//------------------------------------------------------------
+moveToPrev: function(elem) {
+  var all  = this.findSimilarElements(elem)
+    , idx  = all.indexOf(elem)
+    , prev = all[idx - 1];
+  if (prev) {
+    prev.scrollIntoView();
+    aardvark.focus(prev);
+    return true;
+  }
+  return false;
+},
+
+//------------------------------------------------------------
+moveToNext: function(elem) {
+  var all  = this.findSimilarElements(elem)
+    , idx  = all.indexOf(elem)
+    , next = all[idx + 1];
+  if (next) {
+    next.scrollIntoView();
+    aardvark.focus(next);
+    return true;
+  }
+  return false;
+},
+
+findSimilarElements: function(elem) {
+  var selector = SimplePath.genericCssSelectorFromElement(elem);
+  return [].slice.call(document.querySelectorAll(selector), 0);
 },
 
 //--------------------------------------------------------

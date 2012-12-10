@@ -88,21 +88,49 @@ SimplePath = {
     }
     return path.reverse();
   },
-  
-  pathStringFromElement : function (elem, ancestor) {
-    if(ancestor == null)
-      ancestor = document.getElementsByTagName('html')[0];
-    var path=[];
-    while(elem.parentNode) {
-      if(elem === ancestor)
-        return path.reverse().join('/');
-      var item = elem.tagName.toLowerCase() + ':' + this.whichChildOfType(elem);
-      path.push(item)
+
+  // returns a css selector that, if possible, is unspecific enough to catch > 1
+  // element in the page in a similar page template structural nesting/position
+  genericCssSelectorFromElement : function (elem, ancestor) {
+    ancestor = ancestor || document.documentElement;
+    var path = [], ids = [], test, ok;
+    while (elem.parentNode) {
+      if (elem === ancestor) break;
+      var id = elem.id
+        , cls = elem.className.replace(/^\s+|\s+$/g, '').split(/\s+/g).join('.')
+        , item = elem.tagName.toLowerCase();
+      ids.push(id ? '#'+ id : '');
+      path.push(cls ? '.'+ cls : item);
       elem = elem.parentNode;
     }
-    return path.reverse().join('/');
+    path = path.reverse();
+    ids = ids.reverse();
+    ok = test = path.join(' > ');
+    while (ancestor.querySelectorAll(test).length > 1) {
+      ok = test;
+      for (var i = 0; !(id = ids[i]) && id != null; i++) continue;
+      if (!id) break;
+      path[i] = id;
+      ids[i] = '';
+      test = path.join(' > ');
+    }
+    return ok;
   },
-  
+
+  cssSelectorFromElement : function (elem, ancestor) {
+    ancestor = ancestor || document.documentElement;
+    var path = [];
+    while (elem.parentNode) {
+      if (elem === ancestor) break;
+      var id = elem.id
+        , cls = elem.className.replace(/^\s+|\s+$/g, '').split(/\s+/g).join('.')
+        , item = elem.tagName.toLowerCase();
+      path.push(id ? '#'+ id : cls ? '.'+ cls : item);
+      elem = elem.parentNode;
+    }
+    return path.reverse().join(' > ');
+  },
+
   pathFromString : function (str) {
     var pa = str.split('/');
     var path = [], o;
@@ -193,7 +221,7 @@ SimplePath = {
       if (f)
         f.addHereDocVar(
           "g.path[*]",
-          [SimplePath.pathStringFromElement(elem)]
+          [SimplePath.cssSelectorFromElement(elem)]
         );
     }
   }
