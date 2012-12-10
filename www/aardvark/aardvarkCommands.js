@@ -23,7 +23,7 @@ var keyCommands = [
   ["colorize", this.colorize],
   ["view source", this.viewSource],
   ["javascript", this.makeJavascript],
-  ["paste", this.domPath],
+  ["paste", this.paste],
   ["help", this.showMenu, true],
   ["xpath", this.getElementXPath],
   ["element path", this.getElementPath],
