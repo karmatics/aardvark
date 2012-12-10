@@ -211,6 +211,11 @@ validIfNotInlineElements : {
   CODE: 1
   },
 
+neverValidElements : {
+  HTML: 1,
+  BODY: 1
+  },
+
 alwaysValidElements : {
   DIV: 1,
   IFRAME: 1,
@@ -233,34 +238,31 @@ alwaysValidElements : {
 // given an element, walk upwards to find the first
 // valid selectable element
 findValidElement : function (elem) {
-while (elem) {
-  if (this.alwaysValidElements[elem.tagName])
-    return elem;
-  else if (this.validIfBlockElements[elem.tagName]) {
-    if (this.doc.defaultView) {
-      if (this.doc.defaultView.getComputedStyle
-            (elem, null).getPropertyValue("display") == 'block')
-        return elem;
-      }
-    else if (elem.currentStyle){
-      if (elem.currentStyle["display"] == 'block')
-        return elem;   
-      }
-    }
-  else if (this.validIfNotInlineElements[elem.tagName]){
-    if (this.doc.defaultView) {
-      if (this.doc.defaultView.getComputedStyle
-            (elem, null).getPropertyValue("display") != 'inline')
-        return elem;
-      }
-    else if (elem.currentStyle) {
-      if (elem.currentStyle["display"] != 'inline')
-        return elem;   
-      }
-    }
-  elem = elem.parentNode;
+function getStyle(elem, prop) {
+  return this.doc.defaultView ?
+    this.doc.defaultView.getComputedStyle(elem, null).getPropertyValue(prop) :
+    elem.currentStyle ? elem.currentStyle[prop] : null;
   }
-return elem;
+  var display, name;
+  while (elem) {
+    if (this.alwaysValidElements[name = elem.tagName])
+      return elem;
+    if (this.neverValidElements[name])
+      return null;
+    if ('inline' !== (display = getStyle.call(this, elem, 'display')))
+      return elem;
+    // why would we ever want to reject a block level element?
+    // if (this.validIfBlockElements[name]) {
+    //   if (display === 'block')
+    //     return elem;
+    // }
+    // else if (this.validIfNotInlineElements[elem.tagName]) {
+    //   if (display !== 'inline')
+    //     return elem;
+    // }
+    elem = elem.parentNode;
+  }
+  return elem;
 },
 
 //-------------------------------------------------
